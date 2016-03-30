@@ -5,20 +5,20 @@
     <artifactId>pipeline</artifactId>
     <version>0.6.25</version>
   </parent>
-  <name>MaPSeq :: Pipelines :: NCGenes</name>
+  <name>MaPSeq :: Pipelines :: NCGenes :: Baseline</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
-  <artifactId>ncgenes</artifactId>
+  <artifactId>ncgenes-baseline</artifactId>
   <version>0.6.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <url>https://jdr0887.github.io/MaPSeq-Pipeline-NCGenes</url>
+  <url>https://jdr0887.github.io/MaPSeq-Pipeline-NCGenes-Baseline</url>
   <organization>
     <name>RENCI</name>
     <url>http://www.renci.org/</url>
   </organization>            
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes/issues</url>
+    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline/issues</url>
   </issueManagement>
   <licenses>    
     <license>
@@ -28,9 +28,9 @@
     </license>
   </licenses>
   <scm>
-    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes</url>
-    <developerConnection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes.git</developerConnection>
-    <connection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes.git</connection>
+    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline</url>
+    <developerConnection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline.git</developerConnection>
+    <connection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline.git</connection>
     <tag>HEAD</tag>
   </scm>
   <dependencyManagement>
@@ -41,30 +41,30 @@
       	<version>0.0.3</version>
       </dependency>
       <dependency>
-      	<groupId>edu.unc.mapseq.pipelines.ncgenes</groupId>
-      	<artifactId>ncgenes-web-service-api</artifactId>
+      	<groupId>edu.unc.mapseq.pipelines.ncgenes-baseline</groupId>
+      	<artifactId>ncgenes-baseline-ws-api</artifactId>
       	<version>0.6.1-SNAPSHOT</version>
       </dependency>
       <dependency>
-	<groupId>edu.unc.mapseq.pipelines.ncgenes</groupId>
-	<artifactId>ncgenes-commons</artifactId>
+	<groupId>edu.unc.mapseq.pipelines.ncgenes-baseline</groupId>
+	<artifactId>ncgenes-baseline-commons</artifactId>
 	<version>0.6.1-SNAPSHOT</version>
       </dependency>
       <dependency>
-      	<groupId>edu.unc.mapseq.pipelines.ncgenes</groupId>
-      	<artifactId>ncgenes-workflow</artifactId>
+      	<groupId>edu.unc.mapseq.pipelines.ncgenes-baseline</groupId>
+      	<artifactId>ncgenes-baseline-workflow</artifactId>
       	<version>0.6.1-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
   <modules>
-    <module>ncgenes-commons</module>
-    <module>ncgenes-workflow</module>
-    <module>ncgenes-executor</module>
-    <module>ncgenes-commands</module>
-    <module>ncgenes-features</module>
-    <module>ncgenes-web-service-api</module>
-    <module>ncgenes-web-service-impl</module>    
-    <module>ncgenes-messaging</module>
+    <module>ncgenes-baseline-commons</module>
+    <module>ncgenes-baseline-workflow</module>
+    <module>ncgenes-baseline-executor</module>
+    <module>ncgenes-baseline-commands</module>
+    <module>ncgenes-baseline-features</module>
+    <module>ncgenes-baseline-ws-api</module>
+    <module>ncgenes-baseline-ws-impl</module>    
+    <module>ncgenes-baseline-messaging</module>
   </modules>
 </project>
