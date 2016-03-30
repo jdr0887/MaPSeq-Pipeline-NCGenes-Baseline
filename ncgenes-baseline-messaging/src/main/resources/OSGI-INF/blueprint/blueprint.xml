@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0" default-activation="eager">
+
+  <reference id="connectionFactory" interface="javax.jms.ConnectionFactory" />
+
+  <reference id="NCGenesWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
+    component-name="NCGenesWorkflowBeanService" />
+
+  <bean id="NCGenesMessageListener" class="edu.unc.mapseq.messaging.ncgenes.NCGenesMessageListener">
+    <property name="workflowBeanService" ref="NCGenesWorkflowBeanService" />
+    <property name="workflowName" value="NCGenes" />
+  </bean>
+
+  <bean id="NCGenesMessageService" class="edu.unc.mapseq.messaging.ncgenes.NCGenesMessageService" init-method="start"
+    destroy-method="stop" activation="eager">
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="messageListener" ref="NCGenesMessageListener" />
+    <property name="destinationName" value="queue/ncgenes" />
+  </bean>
+
+</blueprint>
