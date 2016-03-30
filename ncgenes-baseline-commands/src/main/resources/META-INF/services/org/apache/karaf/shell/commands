@@ -1,4 +1,3 @@
-edu.unc.mapseq.commands.ncgenes.FixFastqFileDataAction
 edu.unc.mapseq.commands.ncgenes.RegisterNCGenesToIRODSAction
 edu.unc.mapseq.commands.ncgenes.RunNCGenesWorkflowAction
 edu.unc.mapseq.commands.ncgenes.SaveDepthOfCoverageAttributesAction
