@@ -4,19 +4,19 @@
 
   <reference id="connectionFactory" interface="javax.jms.ConnectionFactory" />
 
-  <reference id="NCGenesWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
-    component-name="NCGenesWorkflowBeanService" />
+  <reference id="NCGenesBaselineWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
+    component-name="NCGenesBaselineWorkflowBeanService" />
 
-  <bean id="NCGenesMessageListener" class="edu.unc.mapseq.messaging.ncgenes.NCGenesMessageListener">
-    <property name="workflowBeanService" ref="NCGenesWorkflowBeanService" />
+  <bean id="NCGenesBaselineMessageListener" class="edu.unc.mapseq.messaging.ncgenes.baseline.NCGenesBaselineMessageListener">
+    <property name="workflowBeanService" ref="NCGenesBaselineWorkflowBeanService" />
     <property name="workflowName" value="NCGenes" />
   </bean>
 
-  <bean id="NCGenesMessageService" class="edu.unc.mapseq.messaging.ncgenes.NCGenesMessageService" init-method="start"
+  <bean id="NCGenesBaselineMessageService" class="edu.unc.mapseq.messaging.ncgenes.baseline.NCGenesBaselineMessageService" init-method="start"
     destroy-method="stop" activation="eager">
     <property name="connectionFactory" ref="connectionFactory" />
-    <property name="messageListener" ref="NCGenesMessageListener" />
-    <property name="destinationName" value="queue/ncgenes" />
+    <property name="messageListener" ref="NCGenesBaselineMessageListener" />
+    <property name="destinationName" value="queue/ncgenes.baseline" />
   </bean>
 
 </blueprint>

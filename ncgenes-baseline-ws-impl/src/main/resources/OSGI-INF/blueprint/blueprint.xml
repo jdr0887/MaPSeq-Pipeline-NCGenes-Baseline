@@ -13,16 +13,16 @@
 
   <reference id="sampleDAO" interface="edu.unc.mapseq.dao.SampleDAO" />
 
-  <bean id="ncgenes" class="edu.unc.mapseq.ws.ncgenes.impl.NCGenesServiceImpl">
+  <bean id="ncgenesBaseline" class="edu.unc.mapseq.ws.ncgenes.baseline.impl.NCGenesBaselineServiceImpl">
     <property name="sampleDAO" ref="sampleDAO" />
   </bean>
 
-  <jaxrs:server id="NCGenesServiceRS" address="/NCGenes">
+  <jaxrs:server id="NCGenesBaselineServiceRS" address="/NCGenesBaseline">
     <jaxrs:serviceBeans>
-      <ref component-id="ncgenes" />
+      <ref component-id="ncgenesBaseline" />
     </jaxrs:serviceBeans>
   </jaxrs:server>
 
-  <jaxws:endpoint id="NCGenesServiceWS" implementor="#ncgenes" address="/NCGenesService" />
+  <jaxws:endpoint id="NCGenesBaselineServiceWS" implementor="#ncgenesBaseline" address="/NCGenesBaselineService" />
 
 </blueprint>

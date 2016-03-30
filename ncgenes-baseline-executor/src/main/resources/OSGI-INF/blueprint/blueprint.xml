@@ -2,24 +2,24 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0" default-activation="eager">
 
-  <cm:property-placeholder persistent-id="edu.unc.mapseq.executor.ncgenes" update-strategy="reload">
+  <cm:property-placeholder persistent-id="edu.unc.mapseq.executor.ncgenes.baseline" update-strategy="reload">
     <cm:default-properties>
       <cm:property name="period" value="5" />
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="NCGenesWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
-    component-name="NCGenesWorkflowBeanService" />
+  <reference id="NCGenesBaselineWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
+    component-name="NCGenesBaselineWorkflowBeanService" />
 
-  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.NCGenesWorkflowExecutorTask">
-    <property name="workflowBeanService" ref="NCGenesWorkflowBeanService" />
+  <bean id="task" class="edu.unc.mapseq.executor.ncgenes.baseline.NCGenesBaselineWorkflowExecutorTask">
+    <property name="workflowBeanService" ref="NCGenesBaselineWorkflowBeanService" />
   </bean>
 
-  <bean id="NCGenesWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.NCGenesWorkflowExecutorService"
+  <bean id="NCGenesBaselineWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.baseline.NCGenesBaselineWorkflowExecutorService"
     init-method="start" destroy-method="stop" activation="eager">
     <property name="task" ref="task" />
     <property name="period" value="${period}" />
-    <cm:managed-properties persistent-id="edu.unc.mapseq.executor.ncgenes" update-strategy="container-managed" />
+    <cm:managed-properties persistent-id="edu.unc.mapseq.executor.ncgenes.baseline" update-strategy="container-managed" />
   </bean>
 
 </blueprint>
