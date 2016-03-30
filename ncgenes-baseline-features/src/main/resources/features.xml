@@ -1,0 +1,18 @@
+<features name="mapseq-pipeline-ncgenes-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.2.0">
+
+  <feature name="mapseq-pipeline-ncgenes" version="${project.version}" resolver="(obr)">
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes/ncgenes-commons/${project.version}</bundle>
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes/ncgenes-workflow/${project.version}</bundle>
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes/ncgenes-commands/${project.version}</bundle>
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes.ncgenes-web/ncgenes-web-service-api/${project.version}</bundle>
+    <bundle>mvn:edu.unc.mapseq.pipelines.ncgenes.ncgenes-web/ncgenes-web-service-impl/${project.version}</bundle>
+    <bundle start-level="100">mvn:edu.unc.mapseq.pipelines.ncgenes/ncgenes-executor/${project.version}</bundle>
+    <bundle start-level="100">mvn:edu.unc.mapseq.pipelines.ncgenes/ncgenes-messaging/${project.version}</bundle>
+  </feature>
+
+</features>
+
+
+
+
+
