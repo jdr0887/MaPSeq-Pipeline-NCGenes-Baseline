@@ -59,7 +59,7 @@ import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
 
 public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesBaselineWorkflow.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesBaselineWorkflow.class);
 
     public NCGenesBaselineWorkflow() {
         super();
