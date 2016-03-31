@@ -88,6 +88,7 @@
           <instructions>
             <Export-Package>edu.unc.mapseq.commands.ncgenes.baseline*</Export-Package>
             <Import-Package>*</Import-Package>
+	    <Karaf-Commands>edu.unc.mapseq.commands.ncgenes.baseline</Karaf-Commands>	    
           </instructions>
         </configuration>
       </plugin>
