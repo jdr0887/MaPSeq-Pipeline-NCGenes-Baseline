@@ -6,6 +6,7 @@ import org.apache.karaf.shell.api.action.Action;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,8 @@ import edu.unc.mapseq.commons.ncgenes.baseline.SaveMarkDuplicatesAttributesRunna
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
-@Command(scope = "ncgenes", name = "save-mark-duplicates-attributes", description = "Save MarkDuplicates Attributes")
+@Command(scope = "ncgenes-baseline", name = "save-mark-duplicates-attributes", description = "Save MarkDuplicates Attributes")
+@Service
 public class SaveMarkDuplicatesAttributesAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesAction.class);

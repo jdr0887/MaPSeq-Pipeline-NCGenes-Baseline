@@ -6,13 +6,15 @@ import org.apache.karaf.shell.api.action.Action;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveFlagstatAttributesRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
-@Command(scope = "ncgenes", name = "save-flagstat-attributes", description = "Save Flagstat Attributes")
+@Command(scope = "ncgenes-baseline", name = "save-flagstat-attributes", description = "Save Flagstat Attributes")
+@Service
 public class SaveFlagstatAttributesAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(SaveFlagstatAttributesAction.class);

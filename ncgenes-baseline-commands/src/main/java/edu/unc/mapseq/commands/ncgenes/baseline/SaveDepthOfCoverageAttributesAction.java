@@ -6,6 +6,7 @@ import org.apache.karaf.shell.api.action.Action;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,8 @@ import edu.unc.mapseq.commons.ncgenes.baseline.SaveDepthOfCoverageAttributesRunn
 import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
-@Command(scope = "ncgenes", name = "save-depth-of-coverage-attributes", description = "Save DOC Attributes")
+@Command(scope = "ncgenes-baseline", name = "save-depth-of-coverage-attributes", description = "Save DOC Attributes")
+@Service
 public class SaveDepthOfCoverageAttributesAction implements Action {
 
     private final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesAction.class);
