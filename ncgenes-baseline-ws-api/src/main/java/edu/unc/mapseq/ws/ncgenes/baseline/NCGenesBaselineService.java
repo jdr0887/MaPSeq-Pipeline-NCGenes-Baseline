@@ -27,8 +27,7 @@ public interface NCGenesBaselineService {
     @GET
     @Path("/lookupQuantificationResults/{sampleId}")
     @WebMethod
-    public QualityControlInfo lookupQuantificationResults(
-            @PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId);
+    public QualityControlInfo lookupQuantificationResults(@PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId);
 
     @GET
     @Path("/lookupIdentityInfoFromVCF/{sampleId}")
