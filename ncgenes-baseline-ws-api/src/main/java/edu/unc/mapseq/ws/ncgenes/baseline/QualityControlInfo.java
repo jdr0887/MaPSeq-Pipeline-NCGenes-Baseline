@@ -80,8 +80,8 @@ public class QualityControlInfo {
 
     @Override
     public String toString() {
-        return "QualityControlResults [passedReads=" + passedReads + ", aligned=" + aligned + ", paired=" + paired
-                + ", totalCoverage=" + totalCoverage + ", mean=" + mean + ", icSNPResultList=" + icSNPResultList + "]";
+        return String.format("QualityControlInfo [passedReads=%s, aligned=%s, paired=%s, totalCoverage=%s, mean=%s]", passedReads, aligned,
+                paired, totalCoverage, mean);
     }
 
 }
