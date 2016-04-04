@@ -53,11 +53,12 @@ import edu.unc.mapseq.module.sequencing.picard.PicardSortOrderType;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstatCLI;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsIndexCLI;
 import edu.unc.mapseq.workflow.WorkflowException;
-import edu.unc.mapseq.workflow.impl.AbstractSampleWorkflow;
-import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
-import edu.unc.mapseq.workflow.impl.WorkflowJobFactory;
+import edu.unc.mapseq.workflow.core.WorkflowJobFactory;
+import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
-public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
+public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(NCGenesBaselineWorkflow.class);
 
@@ -145,7 +146,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                 }
             }
 
-            List<File> readPairList = SampleWorkflowUtil.getReadPairList(sample);
+            List<File> readPairList = SequencingWorkflowUtil.getReadPairList(sample);
             logger.info("fileList = {}", readPairList.size());
 
             // assumption: a dash is used as a delimiter between a participantId
@@ -156,10 +157,10 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
             if (readPairList.size() == 2) {
 
                 File r1FastqFile = readPairList.get(0);
-                String r1FastqRootName = SampleWorkflowUtil.getRootFastqName(r1FastqFile.getName());
+                String r1FastqRootName = SequencingWorkflowUtil.getRootFastqName(r1FastqFile.getName());
 
                 File r2FastqFile = readPairList.get(1);
-                String r2FastqRootName = SampleWorkflowUtil.getRootFastqName(r2FastqFile.getName());
+                String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
                 String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
 
@@ -168,7 +169,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     // start site specific jobs
 
                     // new job
-                    CondorJobBuilder builder = WorkflowJobFactory
+                    CondorJobBuilder builder = SequencingWorkflowJobFactory
                             .createJob(++count, WriteVCFHeaderCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
                     String flowcellProper = flowcell.getName().substring(flowcell.getName().length() - 9, flowcell.getName().length());
                     File writeVCFHeaderOut = new File(outputDirectory, String.format("%s.vcf.hdr", fastqLaneRootName));
@@ -184,20 +185,19 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addVertex(writeVCFHeaderJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, FastQCCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
-
+                    builder = SequencingWorkflowJobFactory.createJob(++count, FastQCCLI.class, attempt.getId(), sample.getId())
+                            .siteName(siteName);
                     File fastqcR1Output = new File(outputDirectory, r1FastqRootName + ".fastqc.zip");
                     builder.addArgument(FastQCCLI.INPUT, r1FastqFile.getAbsolutePath())
                             .addArgument(FastQCCLI.OUTPUT, fastqcR1Output.getAbsolutePath())
                             .addArgument(FastQCCLI.IGNORE, IgnoreLevelType.ERROR.toString());
-
                     CondorJob fastQCR1Job = builder.build();
                     logger.info(fastQCR1Job.toString());
                     graph.addVertex(fastQCR1Job);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
-                            .numberOfProcessors(4);
+                    builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId())
+                            .siteName(siteName).numberOfProcessors(4);
                     File saiR1OutFile = new File(outputDirectory, r1FastqRootName + ".sai");
                     builder.addArgument(BWAAlignCLI.THREADS, "4").addArgument(BWAAlignCLI.FASTQ, r1FastqFile.getAbsolutePath())
                             .addArgument(BWAAlignCLI.FASTADB, referenceSequence)
@@ -208,7 +208,8 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(fastQCR1Job, bwaAlignR1Job);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, FastQCCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
+                    builder = SequencingWorkflowJobFactory.createJob(++count, FastQCCLI.class, attempt.getId(), sample.getId())
+                            .siteName(siteName);
                     File fastqcR2Output = new File(outputDirectory, r2FastqRootName + ".fastqc.zip");
                     builder.addArgument(FastQCCLI.INPUT, r2FastqFile.getAbsolutePath())
                             .addArgument(FastQCCLI.OUTPUT, fastqcR2Output.getAbsolutePath())
@@ -218,8 +219,8 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addVertex(fastQCR2Job);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
-                            .numberOfProcessors(4);
+                    builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId())
+                            .siteName(siteName).numberOfProcessors(4);
                     File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
                     builder.addArgument(BWAAlignCLI.THREADS, "4").addArgument(BWAAlignCLI.FASTQ, r2FastqFile.getAbsolutePath())
                             .addArgument(BWAAlignCLI.FASTADB, referenceSequence)
@@ -231,7 +232,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(fastQCR2Job, bwaAlignR2Job);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, BWASAMPairedEndCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, BWASAMPairedEndCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File bwaSAMPairedEndOutFile = new File(outputDirectory, fastqLaneRootName + ".sam");
                     builder.addArgument(BWASAMPairedEndCLI.FASTADB, referenceSequence)
@@ -248,8 +249,8 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(bwaAlignR2Job, bwaSAMPairedEndJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, PicardAddOrReplaceReadGroupsCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, PicardAddOrReplaceReadGroupsCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
                     File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
                     builder.addArgument(PicardAddOrReplaceReadGroupsCLI.INPUT, bwaSAMPairedEndOutFile.getAbsolutePath())
                             .addArgument(PicardAddOrReplaceReadGroupsCLI.OUTPUT, fixRGOutput.getAbsolutePath())
@@ -267,7 +268,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(bwaSAMPairedEndJob, picardAddOrReplaceReadGroupsJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File picardAddOrReplaceReadGroupsIndexOut = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".bai"));
                     builder.addArgument(SAMToolsIndexCLI.INPUT, fixRGOutput.getAbsolutePath()).addArgument(SAMToolsIndexCLI.OUTPUT,
@@ -278,8 +279,8 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(picardAddOrReplaceReadGroupsJob, samtoolsIndexJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, PicardMarkDuplicatesCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, PicardMarkDuplicatesCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
                     File picardMarkDuplicatesMetricsFile = new File(outputDirectory,
                             fixRGOutput.getName().replace(".bam", ".deduped.metrics"));
                     File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
@@ -292,7 +293,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(samtoolsIndexJob, picardMarkDuplicatesJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File picardMarkDuplicatesIndexOut = new File(outputDirectory,
                             picardMarkDuplicatesOutput.getName().replace(".bam", ".bai"));
@@ -304,8 +305,9 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(picardMarkDuplicatesJob, samtoolsIndexJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKRealignerTargetCreatorCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(2);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, GATKRealignerTargetCreatorCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                            .numberOfProcessors(2);
                     File realignTargetCreatorOut = new File(outputDirectory,
                             picardMarkDuplicatesOutput.getName().replace(".bam", ".targets.intervals"));
                     builder.addArgument(GATKRealignerTargetCreatorCLI.REFERENCESEQUENCE, referenceSequence)
@@ -320,7 +322,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(samtoolsIndexJob, gatkRealignTargetCreatorJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKIndelRealignerCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, GATKIndelRealignerCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(2);
                     File indelRealignerOut = new File(outputDirectory,
                             picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
@@ -337,7 +339,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkRealignTargetCreatorJob, gatkIndelRealignerJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, PicardFixMateCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, PicardFixMateCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam", ".fixmate.bam"));
                     builder.addArgument(PicardFixMateCLI.SORTORDER, PicardSortOrderType.COORDINATE.toString().toLowerCase())
@@ -349,7 +351,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkIndelRealignerJob, picardFixMateJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File picardFixMateIndexOut = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bai"));
                     builder.addArgument(SAMToolsIndexCLI.INPUT, picardFixMateOutput.getAbsolutePath()).addArgument(SAMToolsIndexCLI.OUTPUT,
@@ -360,7 +362,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(picardFixMateJob, samtoolsIndexJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKCountCovariatesCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, GATKCountCovariatesCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(4);
                     File gatkCountCovariatesRecalFile = new File(outputDirectory,
                             picardFixMateOutput.getName().replace(".bam", ".bam.cov"));
@@ -377,8 +379,9 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(samtoolsIndexJob, gatkCountCovariatesJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKTableRecalibrationCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(2);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, GATKTableRecalibrationCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                            .numberOfProcessors(2);
                     File gatkTableRecalibrationOut = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.bam"));
                     builder.addArgument(GATKTableRecalibrationCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
                             .addArgument(GATKTableRecalibrationCLI.DOWNSAMPLINGTYPE, GATKDownsamplingType.NONE.toString())
@@ -392,7 +395,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkCountCovariatesJob, gatkTableRecalibrationJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File gatkTableRecalibrationIndexOut = new File(outputDirectory,
                             gatkTableRecalibrationOut.getName().replace(".bam", ".bai"));
@@ -404,7 +407,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkTableRecalibrationJob, samtoolsIndexJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, SAMToolsFlagstatCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsFlagstatCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File samtoolsFlagstatOut = new File(outputDirectory,
                             gatkTableRecalibrationOut.getName().replace(".bam", ".samtools.flagstat"));
@@ -416,7 +419,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(samtoolsIndexJob, samtoolsFlagstatJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKFlagStatCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, GATKFlagStatCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(2);
                     File gatkFlagstatOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".gatk.flagstat"));
                     builder.addArgument(GATKFlagStatCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
@@ -431,7 +434,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(samtoolsIndexJob, gatkFlagstatJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKDepthOfCoverageCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, GATKDepthOfCoverageCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).initialDirectory(outputDirectory.getAbsolutePath()).numberOfProcessors(2);
                     builder.addArgument(GATKDepthOfCoverageCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
                             .addArgument(GATKDepthOfCoverageCLI.DOWNSAMPLINGTYPE, GATKDownsamplingType.NONE.toString())
@@ -448,8 +451,9 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkFlagstatJob, gatkDepthOfCoverageJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(4);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, GATKUnifiedGenotyperCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                            .numberOfProcessors(4);
                     File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".vcf"));
                     File gatkUnifiedGenotyperMetrics = new File(outputDirectory,
                             gatkTableRecalibrationOut.getName().replace(".bam", ".metrics"));
@@ -479,7 +483,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkDepthOfCoverageJob, gatkUnifiedGenotyperJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, FilterVariantCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, FilterVariantCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(2);
                     File filterVariant1Output = new File(outputDirectory,
                             gatkTableRecalibrationOut.getName().replace(".bam", ".variant.vcf"));
@@ -492,8 +496,9 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkUnifiedGenotyperJob, filterVariant1Job);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKVariantRecalibratorCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(2);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, GATKVariantRecalibratorCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                            .numberOfProcessors(2);
                     File gatkVariantRecalibratorRecalFile = new File(outputDirectory,
                             filterVariant1Output.getName().replace(".vcf", ".recal"));
                     File gatkVariantRecalibratorTranchesFile = new File(outputDirectory,
@@ -530,8 +535,9 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(filterVariant1Job, gatkVariantRecalibratorJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, GATKApplyRecalibrationCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(2);
+                    builder = SequencingWorkflowJobFactory
+                            .createJob(++count, GATKApplyRecalibrationCLI.class, attempt.getId(), sample.getId()).siteName(siteName)
+                            .numberOfProcessors(2);
                     File gatkApplyRecalibrationOut = new File(outputDirectory,
                             filterVariant1Output.getName().replace(".vcf", ".recalibrated.filtered.vcf"));
                     builder.addArgument(GATKApplyRecalibrationCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
@@ -548,7 +554,7 @@ public class NCGenesBaselineWorkflow extends AbstractSampleWorkflow {
                     graph.addEdge(gatkVariantRecalibratorJob, gatkApplyRecalibrationJob);
 
                     // new job
-                    builder = WorkflowJobFactory.createJob(++count, FilterVariantCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, FilterVariantCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(2);
                     File filterVariant2Output = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf", ".ic_snps.vcf"));
                     builder.addArgument(FilterVariantCLI.INTERVALLIST, icSNPIntervalList)
