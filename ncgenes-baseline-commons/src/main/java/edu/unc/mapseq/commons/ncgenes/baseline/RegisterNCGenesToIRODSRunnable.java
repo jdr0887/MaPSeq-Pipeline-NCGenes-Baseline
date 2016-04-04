@@ -22,8 +22,8 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Flowcell;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.workflow.impl.IRODSBean;
-import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
+import edu.unc.mapseq.workflow.sequencing.IRODSBean;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class RegisterNCGenesToIRODSRunnable implements Runnable {
 
@@ -75,7 +75,7 @@ public class RegisterNCGenesToIRODSRunnable implements Runnable {
                 tmpDir.mkdirs();
             }
 
-            List<File> readPairList = SampleWorkflowUtil.getReadPairList(sample);
+            List<File> readPairList = SequencingWorkflowUtil.getReadPairList(sample);
 
             // assumption: a dash is used as a delimiter between a participantId and the external code
             int idx = sample.getName().lastIndexOf("-");
@@ -118,11 +118,11 @@ public class RegisterNCGenesToIRODSRunnable implements Runnable {
             List<IRODSBean> files2RegisterToIRODS = new ArrayList<IRODSBean>();
 
             File r1FastqFile = readPairList.get(0);
-            String r1FastqRootName = SampleWorkflowUtil.getRootFastqName(r1FastqFile.getName());
+            String r1FastqRootName = SequencingWorkflowUtil.getRootFastqName(r1FastqFile.getName());
             files2RegisterToIRODS.add(new IRODSBean(r1FastqFile, "fastq", null, null, runMode));
 
             File r2FastqFile = readPairList.get(1);
-            String r2FastqRootName = SampleWorkflowUtil.getRootFastqName(r2FastqFile.getName());
+            String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
             files2RegisterToIRODS.add(new IRODSBean(r2FastqFile, "fastq", null, null, runMode));
 
             String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
