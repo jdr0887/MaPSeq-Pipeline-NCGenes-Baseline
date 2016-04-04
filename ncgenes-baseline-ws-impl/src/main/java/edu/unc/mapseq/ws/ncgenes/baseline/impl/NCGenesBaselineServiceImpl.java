@@ -24,7 +24,7 @@ import edu.unc.mapseq.ws.ncgenes.baseline.QualityControlInfo;
 
 public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesBaselineServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesBaselineServiceImpl.class);
 
     private SampleDAO sampleDAO;
 

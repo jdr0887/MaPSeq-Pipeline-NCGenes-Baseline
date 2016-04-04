@@ -209,12 +209,12 @@ public class NCGenesBaselineServiceTest {
 
     @Test
     public void testLookupNCGenesQCResults() {
-        QName serviceQName = new QName("http://ncgenes.ws.mapseq.unc.edu", "NCGenesService");
-        QName portQName = new QName("http://ncgenes.ws.mapseq.unc.edu", "NCGenesPort");
+        QName serviceQName = new QName("http://baseline.ncgenes.ws.mapseq.unc.edu", "NCGenesBaselineService");
+        QName portQName = new QName("http://baseline.ncgenes.ws.mapseq.unc.edu", "NCGenesBaselinePort");
         Service service = Service.create(serviceQName);
         String host = "biodev2.its.unc.edu";
         service.addPort(portQName, SOAPBinding.SOAP11HTTP_MTOM_BINDING,
-                String.format("http://%s:%d/cxf/NCGenesService", host, 8181));
+                String.format("http://%s:%d/cxf/NCGenesBaselineService", host, 8181));
         NCGenesBaselineService ncgenesService = service.getPort(NCGenesBaselineService.class);
 
         QualityControlInfo results1 = ncgenesService.lookupQuantificationResults(1804853L);
