@@ -134,8 +134,7 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
                 ret.setIcSNPResultList(results);
             }
 
-            File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY,
-                    "coverage.sample_summary");
+            File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY, "coverage.sample_summary");
 
             if (depthOfCoverageSummaryFile == null) {
                 logger.error("depthOfCoverageSummaryFile to process was still not found");
