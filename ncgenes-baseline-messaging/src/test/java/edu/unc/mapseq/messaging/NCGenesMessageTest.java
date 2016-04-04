@@ -14,8 +14,7 @@ public class NCGenesMessageTest {
 
     @Test
     public void testQueue() {
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616",
-                "152.19.198.146"));
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(String.format("nio://%s:61616", "152.19.198.146"));
         Connection connection = null;
         Session session = null;
         try {
