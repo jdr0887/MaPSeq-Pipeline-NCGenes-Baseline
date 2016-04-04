@@ -430,7 +430,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(picardMarkDuplicatesJob, samtoolsIndexJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKRealignerTargetCreatorCLI.class, null).siteName(siteName).numberOfProcessors(2);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKRealignerTargetCreatorCLI.class, null).siteName(siteName)
+                .numberOfProcessors(2);
         File realignTargetCreatorOut = new File(outputDirectory,
                 picardMarkDuplicatesOutput.getName().replace(".bam", ".targets.intervals"));
         builder.addArgument(GATKRealignerTargetCreatorCLI.VALIDATE, Boolean.FALSE).addArgument(GATKRealignerTargetCreatorCLI.DRYRUN)
@@ -445,7 +446,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(samtoolsIndexJob, gatkRealignTargetCreatorJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKIndelRealignerCLI.class, null).siteName(siteName).numberOfProcessors(2);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKIndelRealignerCLI.class, null).siteName(siteName)
+                .numberOfProcessors(2);
         File indelRealignerOut = new File(outputDirectory, picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
         builder.addArgument(GATKIndelRealignerCLI.VALIDATE, Boolean.FALSE).addArgument(GATKIndelRealignerCLI.DRYRUN)
                 .addArgument(GATKIndelRealignerCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
@@ -481,7 +483,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(picardFixMateJob, samtoolsIndexJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKCountCovariatesCLI.class, null).siteName(siteName).numberOfProcessors(4);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKCountCovariatesCLI.class, null).siteName(siteName)
+                .numberOfProcessors(4);
         File gatkCountCovariatesRecalFile = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".bam.cov"));
         builder.addArgument(GATKCountCovariatesCLI.VALIDATE, Boolean.FALSE).addArgument(GATKCountCovariatesCLI.DRYRUN)
                 .addArgument(GATKCountCovariatesCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
@@ -496,7 +499,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(samtoolsIndexJob, gatkCountCovariatesJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKTableRecalibrationCLI.class, null).siteName(siteName).numberOfProcessors(2);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKTableRecalibrationCLI.class, null).siteName(siteName)
+                .numberOfProcessors(2);
         File gatkTableRecalibrationOut = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.bam"));
         builder.addArgument(GATKTableRecalibrationCLI.VALIDATE, Boolean.FALSE).addArgument(GATKTableRecalibrationCLI.DRYRUN)
                 .addArgument(GATKTableRecalibrationCLI.PHONEHOME, GATKPhoneHomeType.NO_ET.toString())
@@ -561,7 +565,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(gatkFlagstatJob, gatkDepthOfCoverageJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).siteName(siteName).numberOfProcessors(4);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKUnifiedGenotyperCLI.class, null).siteName(siteName)
+                .numberOfProcessors(4);
         File gatkUnifiedGenotyperOut = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".vcf"));
         File gatkUnifiedGenotyperMetrics = new File(outputDirectory, gatkTableRecalibrationOut.getName().replace(".bam", ".metrics"));
         builder.addArgument(GATKUnifiedGenotyperCLI.VALIDATE, Boolean.FALSE).addArgument(GATKUnifiedGenotyperCLI.DRYRUN)
@@ -601,7 +606,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(gatkUnifiedGenotyperJob, filterVariant1Job);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKVariantRecalibratorCLI.class, null).siteName(siteName).numberOfProcessors(2);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKVariantRecalibratorCLI.class, null).siteName(siteName)
+                .numberOfProcessors(2);
         File gatkVariantRecalibratorRecalFile = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf", ".recal"));
         File gatkVariantRecalibratorTranchesFile = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf", ".tranches"));
         File gatkVariantRecalibratorRScriptFile = new File(outputDirectory, filterVariant1Output.getName().replace(".vcf", ".plots.R"));
@@ -634,7 +640,8 @@ public class NCGenesWorkflowTest {
         graph.addEdge(filterVariant1Job, gatkVariantRecalibratorJob);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, GATKApplyRecalibrationCLI.class, null).siteName(siteName).numberOfProcessors(2);
+        builder = SequencingWorkflowJobFactory.createJob(++count, GATKApplyRecalibrationCLI.class, null).siteName(siteName)
+                .numberOfProcessors(2);
         File gatkApplyRecalibrationOut = new File(outputDirectory,
                 filterVariant1Output.getName().replace(".vcf", ".recalibrated.filtered.vcf"));
         builder.addArgument(GATKApplyRecalibrationCLI.VALIDATE, Boolean.FALSE).addArgument(GATKApplyRecalibrationCLI.DRYRUN)
