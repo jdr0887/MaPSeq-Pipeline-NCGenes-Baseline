@@ -22,7 +22,7 @@ import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstat;
-import edu.unc.mapseq.workflow.impl.SampleWorkflowUtil;
+import edu.unc.mapseq.workflow.core.WorkflowUtil;
 
 public class SaveFlagstatAttributesRunnable implements Runnable {
 
@@ -81,7 +81,7 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
             Set<Attribute> attributeSet = sample.getAttributes();
 
-            File flagstatFile = SampleWorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(this.maPSeqDAOBeanService, sample.getFileDatas(),
+            File flagstatFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(this.maPSeqDAOBeanService, sample.getFileDatas(),
                     SAMToolsFlagstat.class, MimeType.TEXT_STAT_SUMMARY, workflow.getId());
 
             if (flagstatFile == null) {
