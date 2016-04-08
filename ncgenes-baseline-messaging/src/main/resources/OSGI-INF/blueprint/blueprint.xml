@@ -9,7 +9,7 @@
 
   <bean id="NCGenesBaselineMessageListener" class="edu.unc.mapseq.messaging.ncgenes.baseline.NCGenesBaselineMessageListener">
     <property name="workflowBeanService" ref="NCGenesBaselineWorkflowBeanService" />
-    <property name="workflowName" value="NCGenes" />
+    <property name="workflowName" value="NCGenesBaseline" />
   </bean>
 
   <bean id="NCGenesBaselineMessageService" class="edu.unc.mapseq.messaging.ncgenes.baseline.NCGenesBaselineMessageService" init-method="start"
