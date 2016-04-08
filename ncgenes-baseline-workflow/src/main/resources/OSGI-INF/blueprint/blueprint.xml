@@ -27,7 +27,7 @@
     <property name="corePoolSize" value="${corePoolSize}" />
     <property name="maxPoolSize" value="${maxPoolSize}" />
     <property name="maPSeqConfigurationService" ref="maPSeqConfigurationService" />
-    <property name="maPSeqDAOBean" ref="maPSeqDAOBean" />
+    <property name="maPSeqDAOBeanService" ref="maPSeqDAOBeanService" />
     <property name="attributes">
       <map>
         <entry key="siteName" value="${siteName}" />
