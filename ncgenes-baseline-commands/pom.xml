@@ -6,7 +6,7 @@
   </parent>
   <name>MaPSeq :: Pipelines :: NCGenes :: Baseline :: Commands</name>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.unc.mapseq.pipelines.ncgenes</groupId>
+  <groupId>edu.unc.mapseq.pipelines.ncgenes-baseline</groupId>
   <artifactId>ncgenes-baseline-commands</artifactId>
   <version>0.6.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
