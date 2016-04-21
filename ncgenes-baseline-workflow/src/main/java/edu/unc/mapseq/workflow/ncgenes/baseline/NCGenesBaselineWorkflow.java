@@ -131,14 +131,14 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                         // read probe version to determine interval list file(s)
                         switch (sselProbe) {
                             case "5":
-                                flagstatIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
-                                depthOfCoverageIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
-                                unifiedGenotyperIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
+                                flagstatIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
+                                depthOfCoverageIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
+                                unifiedGenotyperIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_capture_region_pm_100.shortid.interval_list";
                                 break;
                             case "5 + EGL":
-                                flagstatIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
-                                depthOfCoverageIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
-                                unifiedGenotyperIntervalList = "$NCGENESVARIANTCALLING_SEQUENCE_ANALYSIS_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
+                                flagstatIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
+                                depthOfCoverageIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
+                                unifiedGenotyperIntervalList = "$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v5_egl_capture_region_pm_100.shortid.interval_list";
                                 break;
                         }
                     }
@@ -161,8 +161,8 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                 File r2FastqFile = readPairList.get(1);
                 String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
-                String fastqLaneRootName = StringUtils.removeEnd(r2FastqRootName, "_R2");
-
+                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(), sample.getLaneIndex());
+                
                 try {
 
                     // start site specific jobs
@@ -171,7 +171,7 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     CondorJobBuilder builder = SequencingWorkflowJobFactory
                             .createJob(++count, WriteVCFHeaderCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
                     String flowcellProper = flowcell.getName().substring(flowcell.getName().length() - 9, flowcell.getName().length());
-                    File writeVCFHeaderOut = new File(outputDirectory, String.format("%s.vcf.hdr", fastqLaneRootName));
+                    File writeVCFHeaderOut = new File(outputDirectory, String.format("%s.vcf.hdr", rootFileName));
                     builder.addArgument(WriteVCFHeaderCLI.BARCODE, sample.getBarcode())
                             .addArgument(WriteVCFHeaderCLI.RUN, flowcell.getName())
                             .addArgument(WriteVCFHeaderCLI.PARTICIPANTID, participantId)
@@ -224,7 +224,6 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     builder.addArgument(BWAAlignCLI.THREADS, "4").addArgument(BWAAlignCLI.FASTQ, r2FastqFile.getAbsolutePath())
                             .addArgument(BWAAlignCLI.FASTADB, referenceSequence)
                             .addArgument(BWAAlignCLI.OUTFILE, saiR2OutFile.getAbsolutePath());
-
                     CondorJob bwaAlignR2Job = builder.build();
                     logger.info(bwaAlignR2Job.toString());
                     graph.addVertex(bwaAlignR2Job);
@@ -233,14 +232,13 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     // new job
                     builder = SequencingWorkflowJobFactory.createJob(++count, BWASAMPairedEndCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
-                    File bwaSAMPairedEndOutFile = new File(outputDirectory, fastqLaneRootName + ".sam");
+                    File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
                     builder.addArgument(BWASAMPairedEndCLI.FASTADB, referenceSequence)
                             .addArgument(BWASAMPairedEndCLI.FASTQ1, r1FastqFile.getAbsolutePath())
                             .addArgument(BWASAMPairedEndCLI.FASTQ2, r2FastqFile.getAbsolutePath())
                             .addArgument(BWASAMPairedEndCLI.SAI1, saiR1OutFile.getAbsolutePath())
                             .addArgument(BWASAMPairedEndCLI.SAI2, saiR2OutFile.getAbsolutePath())
                             .addArgument(BWASAMPairedEndCLI.OUTFILE, bwaSAMPairedEndOutFile.getAbsolutePath());
-
                     CondorJob bwaSAMPairedEndJob = builder.build();
                     logger.info(bwaSAMPairedEndJob.toString());
                     graph.addVertex(bwaSAMPairedEndJob);
