@@ -10,11 +10,11 @@
       <cm:property name="referenceSequence" value="$NCGENES_REFERENCES_DIRECTORY/BUILD.37.1/bwa061sam0118/BUILD.37.1.sorted.shortid.fa" />
       <cm:property name="knownVCF" value="$NCGENES_RESOURCES_DIRECTORY/gatk/bundle/1.2/b37/dbsnp_132.b37.renci.shortid.vcf" />
       <cm:property name="sselProbe" value="4" />
-      <cm:property name="variantHeader" value="##targetInterval=/proj/renci/sequence_analysis/resources/intervals/agilent_v4_capture_region_pm_50.txt" />
+      <cm:property name="variantHeader" value="##targetInterval=/projects/mapseq/data/resources/intervals/agilent_v4_capture_region_pm_50.txt" />
       <cm:property name="flagstatIntervalList" value="$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v4_capture_region_pm_75.shortid.interval_list" />
       <cm:property name="depthOfCoverageIntervalList" value="$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v4_capture_region_pm_75.shortid.interval_list" />
       <cm:property name="unifiedGenotyperIntervalList" value="$NCGENES_RESOURCES_DIRECTORY/intervals/agilent_v4_capture_region_pm_75.shortid.interval_list" />
-      <cm:property name="icSNPIntervalList" value="$NCGENES_RESOURCES_DIRECTORY/ic_snp_v2.list" />
+      <cm:property name="icSNPIntervalList" value="$NCGENES_RESOURCES_DIRECTORY/ncgenes/ic_snp_v2.list" />
       <cm:property name="readGroupPlatform" value="ILLUMINA" />
       <cm:property name="readGroupPlatformUnit" value="Illumina HiSeq 2000" />
     </cm:default-properties>
