@@ -67,7 +67,6 @@ public class RegisterNCGenesToIRODSRunnable implements Runnable {
         }
 
         for (Sample sample : sampleSet) {
-            Flowcell flowcell = sample.getFlowcell();
 
             File outputDirectory = new File(sample.getOutputDirectory(), "NCGenes");
             File tmpDir = new File(outputDirectory, "tmp");
@@ -81,7 +80,7 @@ public class RegisterNCGenesToIRODSRunnable implements Runnable {
             int idx = sample.getName().lastIndexOf("-");
             String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
-            String irodsHome = System.getenv("NCGENES_IRODS_HOME");
+            String irodsHome = System.getenv("NCGENESBASELINE_IRODS_HOME");
             if (StringUtils.isEmpty(irodsHome)) {
                 logger.error("irodsHome is not set");
                 return;
@@ -92,12 +91,12 @@ public class RegisterNCGenesToIRODSRunnable implements Runnable {
             switch (runMode) {
                 case DEV:
                 case STAGING:
-                    ncgenesIRODSDirectory = String.format("/MedGenZone/home/medgenuser/sequence_data/%s/ncgenes/%s",
-                            runMode.toString().toLowerCase(), participantId);
+                    ncgenesIRODSDirectory = String.format("/MedGenZone/sequence_data/%s/ncgenes/%s", runMode.toString().toLowerCase(),
+                            participantId);
                     break;
                 case PROD:
                 default:
-                    ncgenesIRODSDirectory = String.format("/MedGenZone/home/medgenuser/sequence_data/ncgenes/%s", participantId);
+                    ncgenesIRODSDirectory = String.format("/MedGenZone/sequence_data/ncgenes/%s", participantId);
                     break;
             }
 
