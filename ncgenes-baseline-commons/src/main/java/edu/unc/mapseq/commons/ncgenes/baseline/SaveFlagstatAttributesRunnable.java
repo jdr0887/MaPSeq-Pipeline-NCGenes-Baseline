@@ -26,7 +26,7 @@ import edu.unc.mapseq.workflow.core.WorkflowUtil;
 
 public class SaveFlagstatAttributesRunnable implements Runnable {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveFlagstatAttributesRunnable.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveFlagstatAttributesRunnable.class);
 
     private Long sampleId;
 

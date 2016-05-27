@@ -23,7 +23,7 @@ import edu.unc.mapseq.dao.model.Sample;
 
 public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesRunnable.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesRunnable.class);
 
     private Long sampleId;
 

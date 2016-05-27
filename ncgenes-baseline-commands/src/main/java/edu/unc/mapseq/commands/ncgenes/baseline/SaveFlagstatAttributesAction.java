@@ -17,7 +17,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 @Service
 public class SaveFlagstatAttributesAction implements Action {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveFlagstatAttributesAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveFlagstatAttributesAction.class);
 
     @Option(name = "--sampleId", description = "Sample Identifier", required = false, multiValued = false)
     private Long sampleId;

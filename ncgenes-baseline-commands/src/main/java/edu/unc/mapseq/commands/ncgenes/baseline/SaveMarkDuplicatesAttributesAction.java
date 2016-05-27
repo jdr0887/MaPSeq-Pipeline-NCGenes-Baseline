@@ -18,7 +18,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 @Service
 public class SaveMarkDuplicatesAttributesAction implements Action {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesAction.class);
 
     @Option(name = "--sampleId", description = "Sample Identifier", required = false, multiValued = false)
     private Long sampleId;

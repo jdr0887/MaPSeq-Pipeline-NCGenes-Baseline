@@ -23,7 +23,7 @@ import edu.unc.mapseq.dao.model.Sample;
 
 public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesRunnable.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesRunnable.class);
 
     private Long sampleId;
 

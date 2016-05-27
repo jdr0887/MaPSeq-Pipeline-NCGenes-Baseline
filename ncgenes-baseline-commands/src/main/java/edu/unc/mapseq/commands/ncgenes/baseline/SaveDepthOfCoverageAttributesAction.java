@@ -18,7 +18,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 @Service
 public class SaveDepthOfCoverageAttributesAction implements Action {
 
-    private final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesAction.class);
 
     @Option(name = "--sampleId", description = "Sample Identifier", required = false, multiValued = false)
     private Long sampleId;
