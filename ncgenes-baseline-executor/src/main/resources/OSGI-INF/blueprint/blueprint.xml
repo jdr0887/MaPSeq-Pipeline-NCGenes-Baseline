@@ -8,11 +8,11 @@
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="NCGenesBaselineWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService"
-    component-name="NCGenesBaselineWorkflowBeanService" />
+  <reference id="NCGenesBaselineWorkflowBeanService" interface="edu.unc.mapseq.workflow.WorkflowBeanService" component-name="NCGenesBaselineWorkflowBeanService" />
 
   <bean id="task" class="edu.unc.mapseq.executor.ncgenes.baseline.NCGenesBaselineWorkflowExecutorTask">
     <property name="workflowBeanService" ref="NCGenesBaselineWorkflowBeanService" />
+    <property name="workflowName" value="NCGenesBaseline" />
   </bean>
 
   <bean id="NCGenesBaselineWorkflowExecutorService" class="edu.unc.mapseq.executor.ncgenes.baseline.NCGenesBaselineWorkflowExecutorService"
