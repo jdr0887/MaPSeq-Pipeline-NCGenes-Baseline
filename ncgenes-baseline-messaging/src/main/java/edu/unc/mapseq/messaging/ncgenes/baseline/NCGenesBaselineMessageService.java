@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class NCGenesBaselineMessageService {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesBaselineMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesBaselineMessageService.class);
 
     private Connection connection;
 

@@ -19,7 +19,7 @@ import edu.unc.mapseq.workflow.ncgenes.baseline.NCGenesBaselineWorkflow;
 
 public class NCGenesBaselineWorkflowExecutorTask extends TimerTask {
 
-    private final Logger logger = LoggerFactory.getLogger(NCGenesBaselineWorkflowExecutorTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(NCGenesBaselineWorkflowExecutorTask.class);
 
     private final WorkflowTPE threadPoolExecutor = new WorkflowTPE();
 
