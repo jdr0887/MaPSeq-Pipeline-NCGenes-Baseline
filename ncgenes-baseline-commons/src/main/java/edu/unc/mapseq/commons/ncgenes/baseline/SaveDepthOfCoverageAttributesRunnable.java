@@ -15,7 +15,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
@@ -31,11 +30,14 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private MaPSeqConfigurationService maPSeqConfigurationService;
+    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+        super();
+        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
 
     @Override
     public void run() {
-        logger.info("ENTERING doExecute()");
+        logger.debug("ENTERING run()");
 
         Set<Sample> sampleSet = new HashSet<Sample>();
 
@@ -224,14 +226,6 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public MaPSeqConfigurationService getMaPSeqConfigurationService() {
-        return maPSeqConfigurationService;
-    }
-
-    public void setMaPSeqConfigurationService(MaPSeqConfigurationService maPSeqConfigurationService) {
-        this.maPSeqConfigurationService = maPSeqConfigurationService;
     }
 
 }
