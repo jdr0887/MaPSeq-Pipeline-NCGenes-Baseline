@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveDepthOfCoverageAttributesRunnable;
-import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
 @Command(scope = "ncgenes-baseline", name = "save-depth-of-coverage-attributes", description = "Save DOC Attributes")
@@ -29,9 +28,6 @@ public class SaveDepthOfCoverageAttributesAction implements Action {
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    @Reference
-    private MaPSeqConfigurationService maPSeqConfigurationService;
-
     @Override
     public Object execute() throws Exception {
         logger.info("ENTERING execute()");
@@ -41,9 +37,7 @@ public class SaveDepthOfCoverageAttributesAction implements Action {
             return null;
         }
 
-        SaveDepthOfCoverageAttributesRunnable runnable = new SaveDepthOfCoverageAttributesRunnable();
-        runnable.setMaPSeqDAOBeanService(maPSeqDAOBeanService);
-        runnable.setMaPSeqConfigurationService(maPSeqConfigurationService);
+        SaveDepthOfCoverageAttributesRunnable runnable = new SaveDepthOfCoverageAttributesRunnable(maPSeqDAOBeanService);
         if (sampleId != null) {
             runnable.setSampleId(sampleId);
         }
