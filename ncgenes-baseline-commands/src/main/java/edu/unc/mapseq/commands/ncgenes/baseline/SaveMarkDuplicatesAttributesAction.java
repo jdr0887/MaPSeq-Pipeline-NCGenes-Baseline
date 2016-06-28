@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveMarkDuplicatesAttributesRunnable;
-import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 
 @Command(scope = "ncgenes-baseline", name = "save-mark-duplicates-attributes", description = "Save MarkDuplicates Attributes")
@@ -29,9 +28,6 @@ public class SaveMarkDuplicatesAttributesAction implements Action {
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    @Reference
-    private MaPSeqConfigurationService maPSeqConfigurationService;
-
     @Override
     public Object execute() throws Exception {
         logger.info("ENTERING execute()");
@@ -41,9 +37,7 @@ public class SaveMarkDuplicatesAttributesAction implements Action {
             return null;
         }
 
-        SaveMarkDuplicatesAttributesRunnable runnable = new SaveMarkDuplicatesAttributesRunnable();
-        runnable.setMaPSeqDAOBeanService(maPSeqDAOBeanService);
-        runnable.setMaPSeqConfigurationService(maPSeqConfigurationService);
+        SaveMarkDuplicatesAttributesRunnable runnable = new SaveMarkDuplicatesAttributesRunnable(maPSeqDAOBeanService);
 
         if (sampleId != null) {
             runnable.setSampleId(sampleId);
