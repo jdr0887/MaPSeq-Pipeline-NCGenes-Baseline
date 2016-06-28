@@ -37,8 +37,7 @@ public class SaveFlagstatAttributesAction implements Action {
             return null;
         }
 
-        SaveFlagstatAttributesRunnable runnable = new SaveFlagstatAttributesRunnable();
-        runnable.setMaPSeqDAOBeanService(maPSeqDAOBeanService);
+        SaveFlagstatAttributesRunnable runnable = new SaveFlagstatAttributesRunnable(maPSeqDAOBeanService);
         if (sampleId != null) {
             runnable.setSampleId(sampleId);
         }
