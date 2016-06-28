@@ -3,10 +3,10 @@ package edu.unc.mapseq.workflow.ncgenes.baseline;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.jgrapht.DirectedGraph;
@@ -18,11 +18,10 @@ import org.renci.jlrm.condor.CondorJobEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.commons.ncgenes.baseline.RegisterNCGenesToIRODSRunnable;
+import edu.unc.mapseq.commons.ncgenes.baseline.RegisterToIRODSRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveDepthOfCoverageAttributesRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveFlagstatAttributesRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveMarkDuplicatesAttributesRunnable;
-import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Flowcell;
@@ -52,6 +51,7 @@ import edu.unc.mapseq.module.sequencing.picard.PicardMarkDuplicatesCLI;
 import edu.unc.mapseq.module.sequencing.picard.PicardSortOrderType;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstatCLI;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsIndexCLI;
+import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
@@ -71,10 +71,8 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
     }
 
     @Override
-    public String getVersion() {
-        ResourceBundle ncgenesBundle = ResourceBundle.getBundle("edu/unc/mapseq/workflow/ncgenes/baseline/workflow");
-        String version = ncgenesBundle.getString("version");
-        return StringUtils.isNotEmpty(version) ? version : "0.0.1-SNAPSHOT";
+    public SystemType getSystem() {
+        return SystemType.PRODUCTION;
     }
 
     @Override
@@ -161,8 +159,9 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                 File r2FastqFile = readPairList.get(1);
                 String r2FastqRootName = SequencingWorkflowUtil.getRootFastqName(r2FastqFile.getName());
 
-                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(), sample.getLaneIndex());
-                
+                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(),
+                        sample.getLaneIndex());
+
                 try {
 
                     // start site specific jobs
@@ -579,43 +578,41 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
         Set<Sample> sampleSet = getAggregatedSamples();
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService es = Executors.newSingleThreadExecutor();
 
-        for (Sample sample : sampleSet) {
+        try {
+            for (Sample sample : sampleSet) {
 
-            if ("Undetermined".equals(sample.getBarcode())) {
-                continue;
+                if ("Undetermined".equals(sample.getBarcode())) {
+                    continue;
+                }
+
+                MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
+
+                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean, getSystem(),
+                        getWorkflowRunAttempt().getWorkflowRun().getName());
+                registerNCGenesToIRODSRunnable.setSampleId(sample.getId());
+                es.submit(registerNCGenesToIRODSRunnable);
+
+                SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable(daoBean);
+                saveFlagstatAttributeRunnable.setSampleId(sample.getId());
+                es.submit(saveFlagstatAttributeRunnable);
+
+                SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable(daoBean);
+                saveMarkDuplicatesAttributesRunnable.setSampleId(sample.getId());
+                es.submit(saveMarkDuplicatesAttributesRunnable);
+
+                SaveDepthOfCoverageAttributesRunnable saveDepthOfCoverageAttributesRunnable = new SaveDepthOfCoverageAttributesRunnable(
+                        daoBean);
+                saveDepthOfCoverageAttributesRunnable.setSampleId(sample.getId());
+                es.submit(saveDepthOfCoverageAttributesRunnable);
+
             }
 
-            MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
-            MaPSeqConfigurationService configService = getWorkflowBeanService().getMaPSeqConfigurationService();
-
-            RegisterNCGenesToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterNCGenesToIRODSRunnable();
-            registerNCGenesToIRODSRunnable.setMaPSeqDAOBeanService(daoBean);
-            registerNCGenesToIRODSRunnable.setMaPSeqConfigurationService(configService);
-            registerNCGenesToIRODSRunnable.setSampleId(sample.getId());
-            executorService.submit(registerNCGenesToIRODSRunnable);
-
-            SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable();
-            saveFlagstatAttributeRunnable.setMaPSeqDAOBeanService(daoBean);
-            saveFlagstatAttributeRunnable.setSampleId(sample.getId());
-            executorService.submit(saveFlagstatAttributeRunnable);
-
-            SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable();
-            saveMarkDuplicatesAttributesRunnable.setMaPSeqDAOBeanService(daoBean);
-            saveMarkDuplicatesAttributesRunnable.setMaPSeqConfigurationService(configService);
-            saveMarkDuplicatesAttributesRunnable.setSampleId(sample.getId());
-            executorService.submit(saveMarkDuplicatesAttributesRunnable);
-
-            SaveDepthOfCoverageAttributesRunnable saveDepthOfCoverageAttributesRunnable = new SaveDepthOfCoverageAttributesRunnable();
-            saveDepthOfCoverageAttributesRunnable.setMaPSeqDAOBeanService(daoBean);
-            saveDepthOfCoverageAttributesRunnable.setMaPSeqConfigurationService(configService);
-            saveDepthOfCoverageAttributesRunnable.setSampleId(sample.getId());
-            executorService.submit(saveDepthOfCoverageAttributesRunnable);
-
+            es.shutdown();
+            es.awaitTermination(1L, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        executorService.shutdown();
-
     }
 }
