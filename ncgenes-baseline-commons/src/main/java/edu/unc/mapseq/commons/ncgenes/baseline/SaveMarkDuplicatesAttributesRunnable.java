@@ -15,7 +15,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.unc.mapseq.config.MaPSeqConfigurationService;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
@@ -31,7 +30,10 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private MaPSeqConfigurationService maPSeqConfigurationService;
+    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+        super();
+        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
 
     @Override
     public void run() {
@@ -151,14 +153,6 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public MaPSeqConfigurationService getMaPSeqConfigurationService() {
-        return maPSeqConfigurationService;
-    }
-
-    public void setMaPSeqConfigurationService(MaPSeqConfigurationService maPSeqConfigurationService) {
-        this.maPSeqConfigurationService = maPSeqConfigurationService;
     }
 
 }

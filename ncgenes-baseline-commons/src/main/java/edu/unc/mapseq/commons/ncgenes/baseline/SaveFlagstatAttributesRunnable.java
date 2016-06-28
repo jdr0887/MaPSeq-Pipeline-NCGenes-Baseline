@@ -34,6 +34,11 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
+    public SaveFlagstatAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+        super();
+        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
     @Override
     public void run() {
         logger.info("ENTERING run()");
