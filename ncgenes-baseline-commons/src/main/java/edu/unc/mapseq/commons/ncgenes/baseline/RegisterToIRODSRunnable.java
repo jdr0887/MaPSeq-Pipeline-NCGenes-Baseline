@@ -26,6 +26,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.module.sequencing.fastqc.FastQC;
 import edu.unc.mapseq.module.sequencing.filter.FilterVariant;
 import edu.unc.mapseq.module.sequencing.gatk.GATKApplyRecalibration;
@@ -34,8 +35,8 @@ import edu.unc.mapseq.module.sequencing.gatk.GATKFlagStat;
 import edu.unc.mapseq.module.sequencing.gatk.GATKTableRecalibration;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstat;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsIndex;
-import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.sequencing.IRODSBean;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class RegisterToIRODSRunnable implements Runnable {
 
@@ -47,15 +48,12 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     private Long sampleId;
 
-    private SystemType system;
+    private WorkflowRun workflowRun;
 
-    private String workflowRunName;
-
-    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, SystemType system, String workflowRunName) {
+    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-        this.system = system;
-        this.workflowRunName = workflowRunName;
+        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -93,7 +91,7 @@ public class RegisterToIRODSRunnable implements Runnable {
         for (Sample sample : sampleSet) {
             es.submit(() -> {
 
-                File outputDirectory = new File(sample.getOutputDirectory(), "NCGenesBaseline");
+                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
                 File tmpDir = new File(outputDirectory, "tmp");
                 if (!tmpDir.exists()) {
                     tmpDir.mkdirs();
@@ -103,7 +101,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 int idx = sample.getName().lastIndexOf("-");
                 String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
-                String irodsDirectory = String.format("/MedGenZone/sequence_data/%s/ncgenes/%s", system.getValue(), participantId);
+                String irodsDirectory = String.format("/MedGenZone/sequence_data/%s/ncgenes/%s",
+                        getWorkflowRun().getWorkflow().getSystem().getValue(), participantId);
 
                 CommandOutput commandOutput = null;
 
@@ -124,25 +123,25 @@ public class RegisterToIRODSRunnable implements Runnable {
                 List<ImmutablePair<String, String>> attributeList = Arrays.asList(
                         new ImmutablePair<String, String>("ParticipantId", participantId),
                         new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
-                        new ImmutablePair<String, String>("MaPSeqWorkflowName", "NCGenesBaseline"),
+                        new ImmutablePair<String, String>("MaPSeqWorkflowName", getWorkflowRun().getWorkflow().getName()),
                         new ImmutablePair<String, String>("MaPSeqStudyName", sample.getStudy().getName()),
                         new ImmutablePair<String, String>("MaPSeqSampleId", sample.getId().toString()),
-                        new ImmutablePair<String, String>("MaPSeqSystem", system.getValue()),
+                        new ImmutablePair<String, String>("MaPSeqSystem", getWorkflowRun().getWorkflow().getSystem().getValue()),
                         new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()));
 
                 List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
-                files2RegisterToIRODS.add(
-                        new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRunName)), attributeListWithJob));
+                files2RegisterToIRODS.add(new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRun.getName())),
+                        attributeListWithJob));
 
                 attributeListWithJob = new ArrayList<>(attributeList);
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
-                files2RegisterToIRODS.add(
-                        new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRunName)), attributeListWithJob));
+                files2RegisterToIRODS.add(new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRun.getName())),
+                        attributeListWithJob));
 
-                File bwaSAMPairedEndOutFile = new File(outputDirectory, String.format("%s.sam", workflowRunName));
+                File bwaSAMPairedEndOutFile = new File(outputDirectory, String.format("%s.sam", workflowRun.getName()));
 
                 File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
                 File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
@@ -335,20 +334,12 @@ public class RegisterToIRODSRunnable implements Runnable {
         this.sampleId = sampleId;
     }
 
-    public SystemType getSystem() {
-        return system;
+    public WorkflowRun getWorkflowRun() {
+        return workflowRun;
     }
 
-    public void setSystem(SystemType system) {
-        this.system = system;
-    }
-
-    public String getWorkflowRunName() {
-        return workflowRunName;
-    }
-
-    public void setWorkflowRunName(String workflowRunName) {
-        this.workflowRunName = workflowRunName;
+    public void setWorkflowRun(WorkflowRun workflowRun) {
+        this.workflowRun = workflowRun;
     }
 
 }
