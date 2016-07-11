@@ -42,7 +42,7 @@ public class NCGenesBaselineServiceTest {
                 String.format("http://%s:%d/cxf/NCGenesBaselineService", host, 8181));
         NCGenesBaselineService ncgenesService = service.getPort(NCGenesBaselineService.class);
         // VCFResult results = ncgenesService.lookupIdentityInfoFromVCF(27357L);
-        VCFResult results = ncgenesService.lookupIdentityInfoFromVCF(1784685L);
+        VCFResult results = ncgenesService.lookupIdentityInfoFromVCF(1784685L, null);
         try {
             JAXBContext context = JAXBContext.newInstance(VCFResult.class);
             Marshaller m = context.createMarshaller();
@@ -217,7 +217,7 @@ public class NCGenesBaselineServiceTest {
                 String.format("http://%s:%d/cxf/NCGenesBaselineService", host, 8181));
         NCGenesBaselineService ncgenesService = service.getPort(NCGenesBaselineService.class);
 
-        QualityControlInfo results1 = ncgenesService.lookupQuantificationResults(1804853L);
+        QualityControlInfo results1 = ncgenesService.lookupQuantificationResults(1804853L, null);
 
         try {
             JAXBContext context = JAXBContext.newInstance(QualityControlInfo.class);
