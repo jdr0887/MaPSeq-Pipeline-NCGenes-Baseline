@@ -51,7 +51,6 @@ import edu.unc.mapseq.module.sequencing.picard.PicardMarkDuplicatesCLI;
 import edu.unc.mapseq.module.sequencing.picard.PicardSortOrderType;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstatCLI;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsIndexCLI;
-import edu.unc.mapseq.workflow.SystemType;
 import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.sequencing.AbstractSequencingWorkflow;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowJobFactory;
@@ -63,16 +62,6 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
     public NCGenesBaselineWorkflow() {
         super();
-    }
-
-    @Override
-    public String getName() {
-        return NCGenesBaselineWorkflow.class.getSimpleName().replace("Workflow", "");
-    }
-
-    @Override
-    public SystemType getSystem() {
-        return SystemType.PRODUCTION;
     }
 
     @Override
@@ -111,7 +100,7 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
             logger.debug(sample.toString());
 
             Flowcell flowcell = sample.getFlowcell();
-            File outputDirectory = new File(sample.getOutputDirectory(), getName());
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
             File tmpDirectory = new File(outputDirectory, "tmp");
             tmpDirectory.mkdirs();
 
@@ -589,21 +578,23 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
                 MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
 
-                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean, getSystem(),
-                        getWorkflowRunAttempt().getWorkflowRun().getName());
+                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean,
+                        getWorkflowRunAttempt().getWorkflowRun());
                 registerNCGenesToIRODSRunnable.setSampleId(sample.getId());
                 es.submit(registerNCGenesToIRODSRunnable);
 
-                SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable(daoBean);
+                SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable(daoBean,
+                        getWorkflowRunAttempt().getWorkflowRun());
                 saveFlagstatAttributeRunnable.setSampleId(sample.getId());
                 es.submit(saveFlagstatAttributeRunnable);
 
-                SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable(daoBean);
+                SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable(
+                        daoBean, getWorkflowRunAttempt().getWorkflowRun());
                 saveMarkDuplicatesAttributesRunnable.setSampleId(sample.getId());
                 es.submit(saveMarkDuplicatesAttributesRunnable);
 
                 SaveDepthOfCoverageAttributesRunnable saveDepthOfCoverageAttributesRunnable = new SaveDepthOfCoverageAttributesRunnable(
-                        daoBean);
+                        daoBean, getWorkflowRunAttempt().getWorkflowRun());
                 saveDepthOfCoverageAttributesRunnable.setSampleId(sample.getId());
                 es.submit(saveDepthOfCoverageAttributesRunnable);
 
