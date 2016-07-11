@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.renci.vcf.VCFParser;
@@ -16,9 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.SampleDAO;
+import edu.unc.mapseq.dao.WorkflowRunDAO;
 import edu.unc.mapseq.dao.model.FileData;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 import edu.unc.mapseq.ws.ncgenes.baseline.NCGenesBaselineService;
 import edu.unc.mapseq.ws.ncgenes.baseline.QualityControlInfo;
 
@@ -28,15 +32,17 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
     private SampleDAO sampleDAO;
 
+    private WorkflowRunDAO workflowRunDAO;
+
     @Override
-    public QualityControlInfo lookupQuantificationResults(Long sampleId) {
+    public QualityControlInfo lookupQuantificationResults(Long sampleId, Long workflowRunId) {
         logger.debug("ENTERING lookupQuantificationResults(Long)");
-        Sample sample = null;
         if (sampleId == null) {
             logger.warn("sampleId is null");
             return null;
         }
 
+        Sample sample = null;
         try {
             sample = sampleDAO.findById(sampleId);
             logger.info(sample.toString());
@@ -50,13 +56,29 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
         logger.debug(sample.toString());
 
+        if (workflowRunId == null) {
+            logger.warn("workflowRunId is null");
+            return null;
+        }
+
+        WorkflowRun workflowRun = null;
+        try {
+            workflowRun = workflowRunDAO.findById(workflowRunId);
+        } catch (MaPSeqDAOException e) {
+            logger.error("Failed to find WorkflowRun", e);
+        }
+
+        if (workflowRun == null) {
+            return null;
+        }
+
         Set<FileData> sampleFileDataSet = sample.getFileDatas();
 
         QualityControlInfo ret = new QualityControlInfo();
 
         if (sampleFileDataSet != null) {
 
-            File flagstatFile = fileToFind(sample, MimeType.TEXT_STAT_SUMMARY, "samtools.flagstat");
+            File flagstatFile = fileToFind(sample, MimeType.TEXT_STAT_SUMMARY, workflowRun, "samtools.flagstat");
 
             if (flagstatFile == null) {
                 logger.error("flagstat file to process was still not found");
@@ -119,7 +141,7 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
                 }
             }
 
-            File vcfFile = fileToFind(sample, MimeType.TEXT_VCF, "ic_snps.vcf");
+            File vcfFile = fileToFind(sample, MimeType.TEXT_VCF, workflowRun, "ic_snps.vcf");
 
             if (vcfFile == null) {
                 logger.error("vcf file to process was still not found");
@@ -134,7 +156,8 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
                 ret.setIcSNPResultList(results);
             }
 
-            File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY, "coverage.sample_summary");
+            File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY, workflowRun,
+                    "coverage.sample_summary");
 
             if (depthOfCoverageSummaryFile == null) {
                 logger.error("depthOfCoverageSummaryFile to process was still not found");
@@ -166,10 +189,10 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
         return ret;
     }
 
-    private File fileToFind(Sample sample, MimeType mimeType, String suffix) {
+    private File fileToFind(Sample sample, MimeType mimeType, WorkflowRun workflowRun, String suffix) {
         Set<FileData> sampleFileDataSet = sample.getFileDatas();
 
-        if (sampleFileDataSet.size() > 0) {
+        if (CollectionUtils.isNotEmpty(sampleFileDataSet)) {
             for (FileData fileData : sampleFileDataSet) {
                 if (fileData.getName().endsWith(suffix) && mimeType.equals(fileData.getMimeType())) {
                     return fileData.toFile();
@@ -177,10 +200,9 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
             }
         }
 
-        // check the FS
-        if (StringUtils.isNotEmpty(sample.getOutputDirectory())) {
-            File sampleOutputDirectory = new File(sample.getOutputDirectory());
-            for (File file : sampleOutputDirectory.listFiles()) {
+        File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+        if (outputDirectory.exists()) {
+            for (File file : outputDirectory.listFiles()) {
                 if (file.getName().endsWith(suffix)) {
                     return file;
                 }
@@ -191,7 +213,7 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
     }
 
     @Override
-    public VCFResult lookupIdentityInfoFromVCF(Long sampleId) {
+    public VCFResult lookupIdentityInfoFromVCF(Long sampleId, Long workflowRunId) {
         logger.debug("ENTERING lookupIdentityInfoFromVCF(Long)");
         if (sampleId == null) {
             logger.warn("sampleId is null");
@@ -234,6 +256,14 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
     public void setSampleDAO(SampleDAO sampleDAO) {
         this.sampleDAO = sampleDAO;
+    }
+
+    public WorkflowRunDAO getWorkflowRunDAO() {
+        return workflowRunDAO;
+    }
+
+    public void setWorkflowRunDAO(WorkflowRunDAO workflowRunDAO) {
+        this.workflowRunDAO = workflowRunDAO;
     }
 
 }
