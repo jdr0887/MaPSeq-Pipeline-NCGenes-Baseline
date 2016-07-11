@@ -19,6 +19,8 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
@@ -30,9 +32,12 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+    private WorkflowRun workflowRun;
+
+    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -60,8 +65,7 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
         for (Sample sample : sampleSet) {
 
-            File workflowDir = new File(sample.getOutputDirectory(), "NCGenes");
-            File outputDirectory = new File(workflowDir, String.format("L%03d_%s", sample.getLaneIndex(), sample.getBarcode()));
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
 
             Set<Attribute> attributeSet = sample.getAttributes();
 
@@ -153,6 +157,14 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
+    public WorkflowRun getWorkflowRun() {
+        return workflowRun;
+    }
+
+    public void setWorkflowRun(WorkflowRun workflowRun) {
+        this.workflowRun = workflowRun;
     }
 
 }

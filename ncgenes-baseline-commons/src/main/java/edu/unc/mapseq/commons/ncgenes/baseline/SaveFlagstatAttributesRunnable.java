@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
-import edu.unc.mapseq.dao.WorkflowDAO;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstat;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveFlagstatAttributesRunnable implements Runnable {
 
@@ -34,9 +34,12 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    public SaveFlagstatAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+    private WorkflowRun workflowRun;
+
+    public SaveFlagstatAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -62,32 +65,16 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
             logger.warn("MaPSeqDAOException", e);
         }
 
-        Workflow workflow = null;
-        try {
-            WorkflowDAO workflowDAO = maPSeqDAOBeanService.getWorkflowDAO();
-            List<Workflow> workflowList = workflowDAO.findByName("NCGenes");
-            if (workflowList != null && !workflowList.isEmpty()) {
-                workflow = workflowList.get(0);
-            }
-        } catch (MaPSeqDAOException e2) {
-            logger.error("Error", e2);
-        }
-
-        if (workflow == null) {
-            logger.error("NCGenes workflow not found");
-            return;
-        }
-
         for (Sample sample : sampleSet) {
 
             logger.info(sample.toString());
 
-            File outputDirectory = new File(sample.getOutputDirectory(), "NCGenes");
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
 
             Set<Attribute> attributeSet = sample.getAttributes();
 
             File flagstatFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(this.maPSeqDAOBeanService, sample.getFileDatas(),
-                    SAMToolsFlagstat.class, MimeType.TEXT_STAT_SUMMARY, workflow.getId());
+                    SAMToolsFlagstat.class, MimeType.TEXT_STAT_SUMMARY, workflowRun.getWorkflow().getId());
 
             if (flagstatFile == null) {
                 logger.error("flagstat file to process was not found...checking FS");
@@ -223,6 +210,14 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
+    public WorkflowRun getWorkflowRun() {
+        return workflowRun;
+    }
+
+    public void setWorkflowRun(WorkflowRun workflowRun) {
+        this.workflowRun = workflowRun;
     }
 
 }

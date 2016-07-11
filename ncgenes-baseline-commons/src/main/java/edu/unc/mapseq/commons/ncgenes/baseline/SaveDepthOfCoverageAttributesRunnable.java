@@ -19,6 +19,8 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
@@ -30,9 +32,12 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+    private WorkflowRun workflowRun;
+
+    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -60,7 +65,7 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
         for (Sample sample : sampleSet) {
 
-            File outputDirectory = new File(sample.getOutputDirectory(), "NCGenes");
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
 
             if (!outputDirectory.exists()) {
                 continue;
@@ -226,6 +231,14 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
+    public WorkflowRun getWorkflowRun() {
+        return workflowRun;
+    }
+
+    public void setWorkflowRun(WorkflowRun workflowRun) {
+        this.workflowRun = workflowRun;
     }
 
 }
