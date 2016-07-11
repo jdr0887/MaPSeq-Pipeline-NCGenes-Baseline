@@ -15,7 +15,6 @@ import edu.unc.mapseq.commons.ncgenes.baseline.RegisterToIRODSRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.WorkflowRun;
-import edu.unc.mapseq.workflow.SystemType;
 
 @Command(scope = "ncgenes-baseline", name = "register-to-irods", description = "Register a NCGenes sample output to iRODS")
 @Service
@@ -42,8 +41,7 @@ public class RegisterToIRODSAction implements Action {
             ExecutorService es = Executors.newSingleThreadExecutor();
             WorkflowRun workflowRun = maPSeqDAOBeanService.getWorkflowRunDAO().findById(workflowRunId);
 
-            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, SystemType.PRODUCTION,
-                    workflowRun.getName());
+            RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, workflowRun);
             if (sampleId != null) {
                 runnable.setSampleId(sampleId);
             }
