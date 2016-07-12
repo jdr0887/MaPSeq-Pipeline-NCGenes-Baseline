@@ -59,41 +59,32 @@ public class RegisterToIRODSRunnable implements Runnable {
         logger.info("ENTERING run()");
 
         Set<Sample> sampleSet = new HashSet<Sample>();
-
-        if (sampleId != null) {
-            try {
+        List<Workflow> workflowList = null;
+        try {
+            if (sampleId != null) {
                 sampleSet.add(maPSeqDAOBeanService.getSampleDAO().findById(sampleId));
-            } catch (MaPSeqDAOException e1) {
-                e1.printStackTrace();
-                return;
             }
-        }
 
-        if (flowcellId != null) {
-            try {
+            if (flowcellId != null) {
                 List<Sample> samples = maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId);
                 if (samples != null && !samples.isEmpty()) {
                     sampleSet.addAll(samples);
                 }
-            } catch (MaPSeqDAOException e1) {
-                e1.printStackTrace();
+            }
+
+            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
                 return;
             }
+
+        } catch (MaPSeqDAOException e1) {
+            e1.printStackTrace();
+            return;
         }
 
         BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
         Bundle bundle = bundleContext.getBundle();
         String version = bundle.getVersion().toString();
-
-        List<Workflow> workflowList = null;
-        try {
-            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
-            if (CollectionUtils.isEmpty(workflowList)) {
-                return;
-            }
-        } catch (MaPSeqDAOException e1) {
-            e1.printStackTrace();
-        }
 
         Workflow workflow = workflowList.get(0);
 

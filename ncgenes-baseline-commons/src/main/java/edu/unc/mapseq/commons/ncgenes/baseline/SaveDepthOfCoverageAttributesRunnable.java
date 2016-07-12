@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
@@ -32,12 +34,9 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private WorkflowRun workflowRun;
-
-    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
+    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -46,6 +45,7 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
         Set<Sample> sampleSet = new HashSet<Sample>();
 
+        List<Workflow> workflowList = null;
         try {
             if (flowcellId != null) {
                 sampleSet.addAll(maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId));
@@ -59,13 +59,21 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
                 }
                 sampleSet.add(sample);
             }
+
+            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
+                return;
+            }
+
         } catch (MaPSeqDAOException e) {
             logger.warn("MaPSeqDAOException", e);
         }
 
+        Workflow workflow = workflowList.get(0);
+
         for (Sample sample : sampleSet) {
 
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
 
             if (!outputDirectory.exists()) {
                 continue;
@@ -231,14 +239,6 @@ public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
     }
 
 }

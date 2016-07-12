@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstat;
 import edu.unc.mapseq.workflow.core.WorkflowUtil;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
@@ -34,12 +35,9 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private WorkflowRun workflowRun;
-
-    public SaveFlagstatAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
+    public SaveFlagstatAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -48,6 +46,7 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
         Set<Sample> sampleSet = new HashSet<Sample>();
 
+        List<Workflow> workflowList = null;
         try {
             if (flowcellId != null) {
                 sampleSet.addAll(maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId));
@@ -61,20 +60,26 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
                 }
                 sampleSet.add(sample);
             }
+            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
+                return;
+            }
         } catch (MaPSeqDAOException e) {
             logger.warn("MaPSeqDAOException", e);
         }
+
+        Workflow workflow = workflowList.get(0);
 
         for (Sample sample : sampleSet) {
 
             logger.info(sample.toString());
 
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
 
             Set<Attribute> attributeSet = sample.getAttributes();
 
             File flagstatFile = WorkflowUtil.findFileByJobAndMimeTypeAndWorkflowId(this.maPSeqDAOBeanService, sample.getFileDatas(),
-                    SAMToolsFlagstat.class, MimeType.TEXT_STAT_SUMMARY, workflowRun.getWorkflow().getId());
+                    SAMToolsFlagstat.class, MimeType.TEXT_STAT_SUMMARY, workflow.getId());
 
             if (flagstatFile == null) {
                 logger.error("flagstat file to process was not found...checking FS");
@@ -210,14 +215,6 @@ public class SaveFlagstatAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
     }
 
 }

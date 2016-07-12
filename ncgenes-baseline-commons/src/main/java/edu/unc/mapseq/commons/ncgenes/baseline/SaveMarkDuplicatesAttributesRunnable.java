@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
@@ -19,7 +20,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
@@ -32,12 +33,9 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    private WorkflowRun workflowRun;
-
-    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
+    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -46,6 +44,7 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
         Set<Sample> sampleSet = new HashSet<Sample>();
 
+        List<Workflow> workflowList = null;
         try {
             if (flowcellId != null) {
                 sampleSet.addAll(maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId));
@@ -59,13 +58,19 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
                 }
                 sampleSet.add(sample);
             }
+            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
+                return;
+            }
         } catch (MaPSeqDAOException e) {
             logger.warn("MaPSeqDAOException", e);
         }
 
+        Workflow workflow = workflowList.get(0);
+
         for (Sample sample : sampleSet) {
 
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
 
             Set<Attribute> attributeSet = sample.getAttributes();
 
@@ -79,7 +84,7 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
             Collection<File> fileList = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter(".deduped.metrics"), null);
 
-            if (fileList != null && !fileList.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(fileList)) {
                 File picardMarkDuplicatesMetricsFile = fileList.iterator().next();
                 try {
                     List<String> lines = FileUtils.readLines(picardMarkDuplicatesMetricsFile);
@@ -157,14 +162,6 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-    }
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
     }
 
 }

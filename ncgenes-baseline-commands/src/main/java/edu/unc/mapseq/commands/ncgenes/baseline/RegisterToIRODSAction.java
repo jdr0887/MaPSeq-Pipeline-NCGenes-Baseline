@@ -31,7 +31,7 @@ public class RegisterToIRODSAction implements Action {
 
     @Override
     public Object execute() throws Exception {
-        logger.info("ENTERING execute()");
+        logger.debug("ENTERING execute()");
         ExecutorService es = Executors.newSingleThreadExecutor();
         RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService);
         if (sampleId != null) {

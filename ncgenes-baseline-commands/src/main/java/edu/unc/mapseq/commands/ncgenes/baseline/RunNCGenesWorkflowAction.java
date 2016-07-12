@@ -49,7 +49,7 @@ public class RunNCGenesWorkflowAction implements Action {
 
     @Override
     public Object execute() throws Exception {
-        logger.info("ENTERING execute()");
+        logger.debug("ENTERING execute()");
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
                 String.format("nio://%s:61616", maPSeqConfigurationService.getWebServiceHost("localhost")));
 

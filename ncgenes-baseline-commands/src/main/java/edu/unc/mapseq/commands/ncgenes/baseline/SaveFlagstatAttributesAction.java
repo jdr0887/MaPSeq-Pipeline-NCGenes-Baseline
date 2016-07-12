@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveFlagstatAttributesRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
-import edu.unc.mapseq.dao.MaPSeqDAOException;
-import edu.unc.mapseq.dao.model.WorkflowRun;
 
 @Command(scope = "ncgenes-baseline", name = "save-flagstat-attributes", description = "Save Flagstat Attributes")
 @Service
@@ -28,38 +26,29 @@ public class SaveFlagstatAttributesAction implements Action {
     @Option(name = "--flowcellId", description = "Flowcell Identifier", required = false, multiValued = false)
     private Long flowcellId;
 
-    @Option(name = "--workflowRunId", description = "WorkflowRun Identifier", required = true, multiValued = false)
-    private Long workflowRunId;
-
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
     @Override
     public Object execute() throws Exception {
-        logger.info("ENTERING execute()");
+        logger.debug("ENTERING execute()");
 
         if (sampleId == null && flowcellId == null) {
             System.out.println("Both the Sample & Flowcell identifiers can't be null");
             return null;
         }
 
-        try {
-            ExecutorService es = Executors.newSingleThreadExecutor();
-            WorkflowRun workflowRun = maPSeqDAOBeanService.getWorkflowRunDAO().findById(workflowRunId);
+        ExecutorService es = Executors.newSingleThreadExecutor();
 
-            SaveFlagstatAttributesRunnable runnable = new SaveFlagstatAttributesRunnable(maPSeqDAOBeanService, workflowRun);
-            if (sampleId != null) {
-                runnable.setSampleId(sampleId);
-            }
-            if (flowcellId != null) {
-                runnable.setFlowcellId(flowcellId);
-            }
-            es.submit(runnable);
-            es.shutdown();
-        } catch (MaPSeqDAOException e) {
-            logger.error(e.getMessage(), e);
+        SaveFlagstatAttributesRunnable runnable = new SaveFlagstatAttributesRunnable(maPSeqDAOBeanService);
+        if (sampleId != null) {
+            runnable.setSampleId(sampleId);
         }
-
+        if (flowcellId != null) {
+            runnable.setFlowcellId(flowcellId);
+        }
+        es.submit(runnable);
+        es.shutdown();
         return null;
     }
 
