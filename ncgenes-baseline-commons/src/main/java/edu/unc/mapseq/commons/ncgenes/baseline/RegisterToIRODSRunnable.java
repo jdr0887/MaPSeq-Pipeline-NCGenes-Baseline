@@ -101,8 +101,9 @@ public class RegisterToIRODSRunnable implements Runnable {
                 int idx = sample.getName().lastIndexOf("-");
                 String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
-                String irodsDirectory = String.format("/MedGenZone/sequence_data/%s/ncgenes/%s",
-                        getWorkflowRun().getWorkflow().getSystem().getValue(), participantId);
+                String irodsDirectory = String.format("/MedGenZone/%s/sequencing/ncgenes/analysis/%s/%s/%s",
+                        workflowRun.getWorkflow().getSystem().getValue(), sample.getFlowcell().getName(), sample.getName(),
+                        workflowRun.getWorkflow().getName());
 
                 CommandOutput commandOutput = null;
 
@@ -120,6 +121,9 @@ public class RegisterToIRODSRunnable implements Runnable {
 
                 List<IRODSBean> files2RegisterToIRODS = new ArrayList<IRODSBean>();
 
+                String rootFileName = String.format("%s_%s_L%03d", sample.getFlowcell().getName(), sample.getBarcode(),
+                        sample.getLaneIndex());
+
                 List<ImmutablePair<String, String>> attributeList = Arrays.asList(
                         new ImmutablePair<String, String>("ParticipantId", participantId),
                         new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
@@ -132,16 +136,16 @@ public class RegisterToIRODSRunnable implements Runnable {
                 List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
-                files2RegisterToIRODS.add(new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRun.getName())),
-                        attributeListWithJob));
+                files2RegisterToIRODS.add(
+                        new IRODSBean(new File(outputDirectory, String.format("%s_R1.fastqc.zip", rootFileName)), attributeListWithJob));
 
                 attributeListWithJob = new ArrayList<>(attributeList);
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
-                files2RegisterToIRODS.add(new IRODSBean(new File(outputDirectory, String.format("%s.r2.fastqc.zip", workflowRun.getName())),
-                        attributeListWithJob));
+                files2RegisterToIRODS.add(
+                        new IRODSBean(new File(outputDirectory, String.format("%s_R2.fastqc.zip", rootFileName)), attributeListWithJob));
 
-                File bwaSAMPairedEndOutFile = new File(outputDirectory, String.format("%s.sam", workflowRun.getName()));
+                File bwaSAMPairedEndOutFile = new File(outputDirectory, String.format("%s.sam", rootFileName));
 
                 File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
                 File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
