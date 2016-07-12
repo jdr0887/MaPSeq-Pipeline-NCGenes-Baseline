@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -26,7 +27,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.module.sequencing.fastqc.FastQC;
 import edu.unc.mapseq.module.sequencing.filter.FilterVariant;
 import edu.unc.mapseq.module.sequencing.gatk.GATKApplyRecalibration;
@@ -48,12 +49,9 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     private Long sampleId;
 
-    private WorkflowRun workflowRun;
-
-    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService, WorkflowRun workflowRun) {
+    public RegisterToIRODSRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
         super();
         this.maPSeqDAOBeanService = maPSeqDAOBeanService;
-        this.workflowRun = workflowRun;
     }
 
     @Override
@@ -87,11 +85,23 @@ public class RegisterToIRODSRunnable implements Runnable {
         Bundle bundle = bundleContext.getBundle();
         String version = bundle.getVersion().toString();
 
+        List<Workflow> workflowList = null;
+        try {
+            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
+            if (CollectionUtils.isEmpty(workflowList)) {
+                return;
+            }
+        } catch (MaPSeqDAOException e1) {
+            e1.printStackTrace();
+        }
+
+        Workflow workflow = workflowList.get(0);
+
         ExecutorService es = Executors.newSingleThreadExecutor();
         for (Sample sample : sampleSet) {
             es.submit(() -> {
 
-                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
                 File tmpDir = new File(outputDirectory, "tmp");
                 if (!tmpDir.exists()) {
                     tmpDir.mkdirs();
@@ -102,8 +112,7 @@ public class RegisterToIRODSRunnable implements Runnable {
                 String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
 
                 String irodsDirectory = String.format("/MedGenZone/%s/sequencing/ncgenes/analysis/%s/%s/%s",
-                        workflowRun.getWorkflow().getSystem().getValue(), sample.getFlowcell().getName(), sample.getName(),
-                        workflowRun.getWorkflow().getName());
+                        workflow.getSystem().getValue(), sample.getFlowcell().getName(), sample.getName(), workflow.getName());
 
                 CommandOutput commandOutput = null;
 
@@ -127,10 +136,10 @@ public class RegisterToIRODSRunnable implements Runnable {
                 List<ImmutablePair<String, String>> attributeList = Arrays.asList(
                         new ImmutablePair<String, String>("ParticipantId", participantId),
                         new ImmutablePair<String, String>("MaPSeqWorkflowVersion", version),
-                        new ImmutablePair<String, String>("MaPSeqWorkflowName", getWorkflowRun().getWorkflow().getName()),
+                        new ImmutablePair<String, String>("MaPSeqWorkflowName", workflow.getName()),
                         new ImmutablePair<String, String>("MaPSeqStudyName", sample.getStudy().getName()),
                         new ImmutablePair<String, String>("MaPSeqSampleId", sample.getId().toString()),
-                        new ImmutablePair<String, String>("MaPSeqSystem", getWorkflowRun().getWorkflow().getSystem().getValue()),
+                        new ImmutablePair<String, String>("MaPSeqSystem", workflow.getSystem().getValue()),
                         new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()));
 
                 List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
@@ -336,14 +345,6 @@ public class RegisterToIRODSRunnable implements Runnable {
 
     public void setSampleId(Long sampleId) {
         this.sampleId = sampleId;
-    }
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
     }
 
 }
