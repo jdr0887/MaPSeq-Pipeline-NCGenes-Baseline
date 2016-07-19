@@ -25,15 +25,13 @@ import org.renci.vcf.VCFResult;
 public interface NCGenesBaselineService {
 
     @GET
-    @Path("/lookupQuantificationResults/{sampleId}/{workflowRunId}")
+    @Path("/lookupQuantificationResults/{sampleId}")
     @WebMethod
-    public QualityControlInfo lookupQuantificationResults(@PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId,
-            @PathParam("workflowRunId") @WebParam(name = "workflowRunId") Long workflowRunId);
+    public QualityControlInfo lookupQuantificationResults(@PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId);
 
     @GET
-    @Path("/lookupIdentityInfoFromVCF/{sampleId}/{workflowRunId}")
+    @Path("/lookupIdentityInfoFromVCF/{sampleId}")
     @WebMethod
-    public VCFResult lookupIdentityInfoFromVCF(@PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId,
-            @PathParam("workflowRunId") @WebParam(name = "workflowRunId") Long workflowRunId);
+    public VCFResult lookupIdentityInfoFromVCF(@PathParam("sampleId") @WebParam(name = "sampleId") Long sampleId);
 
 }

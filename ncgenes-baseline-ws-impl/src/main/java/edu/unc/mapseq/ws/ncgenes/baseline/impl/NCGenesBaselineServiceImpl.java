@@ -17,11 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.SampleDAO;
+import edu.unc.mapseq.dao.WorkflowDAO;
 import edu.unc.mapseq.dao.WorkflowRunDAO;
 import edu.unc.mapseq.dao.model.FileData;
+import edu.unc.mapseq.dao.model.Workflow;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
-import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 import edu.unc.mapseq.ws.ncgenes.baseline.NCGenesBaselineService;
 import edu.unc.mapseq.ws.ncgenes.baseline.QualityControlInfo;
@@ -32,10 +33,10 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
     private SampleDAO sampleDAO;
 
-    private WorkflowRunDAO workflowRunDAO;
+    private WorkflowDAO workflowDAO;
 
     @Override
-    public QualityControlInfo lookupQuantificationResults(Long sampleId, Long workflowRunId) {
+    public QualityControlInfo lookupQuantificationResults(Long sampleId) {
         logger.debug("ENTERING lookupQuantificationResults(Long)");
         if (sampleId == null) {
             logger.warn("sampleId is null");
@@ -56,141 +57,129 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
 
         logger.debug(sample.toString());
 
-        if (workflowRunId == null) {
-            logger.warn("workflowRunId is null");
-            return null;
-        }
-
-        WorkflowRun workflowRun = null;
-        try {
-            workflowRun = workflowRunDAO.findById(workflowRunId);
-        } catch (MaPSeqDAOException e) {
-            logger.error("Failed to find WorkflowRun", e);
-        }
-
-        if (workflowRun == null) {
-            return null;
-        }
-
         Set<FileData> sampleFileDataSet = sample.getFileDatas();
 
         QualityControlInfo ret = new QualityControlInfo();
 
-        if (sampleFileDataSet != null) {
+        try {
 
-            File flagstatFile = fileToFind(sample, MimeType.TEXT_STAT_SUMMARY, workflowRun, "samtools.flagstat");
+	    if (sampleFileDataSet != null) {
+		
+		File flagstatFile = fileToFind(sample, MimeType.TEXT_STAT_SUMMARY, "samtools.flagstat");
+		
+		if (flagstatFile == null) {
+		    logger.error("flagstat file to process was still not found");
+		    return ret;
+		}
+		
+		logger.info("flagstat file is: {}", flagstatFile.getAbsolutePath());
+		if (flagstatFile.exists()) {
+		    List<String> lines = null;
+		    try {
+			lines = FileUtils.readLines(flagstatFile);
+		    } catch (IOException e1) {
+			e1.printStackTrace();
+		    }
+		    
+		    if (lines != null) {
+			for (String line : lines) {
+			    
+			    if (line.contains("in total")) {
+				String value = line.substring(0, line.indexOf(" ")).trim();
+				try {
+				    ret.setPassedReads(Integer.valueOf(value));
+				} catch (Exception e) {
+				    logger.error("problem getting passedReads, value: {}", value);
+				}
+			    }
+			    
+			    if (line.contains("mapped (")) {
+				Pattern pattern = Pattern.compile("^.+\\((.+)\\)");
+				Matcher matcher = pattern.matcher(line);
+				if (matcher.matches()) {
+				    String value = matcher.group(1);
+				    value = value.substring(0, value.indexOf("%")).trim();
+				    if (StringUtils.isNotEmpty(value)) {
+					try {
+					    ret.setAligned(Float.valueOf(value));
+					} catch (Exception e) {
+					    logger.error("problem getting mapped, value: {}", value);
+					}
+				    }
+				}
+			    }
+			    
+			    if (line.contains("properly paired (")) {
+				Pattern pattern = Pattern.compile("^.+\\((.+)\\)");
+				Matcher matcher = pattern.matcher(line);
+				if (matcher.matches()) {
+				    String value = matcher.group(1);
+				    value = value.substring(0, value.indexOf("%"));
+				    if (StringUtils.isNotEmpty(value)) {
+					try {
+					    ret.setPaired(Float.valueOf(value));
+					} catch (Exception e) {
+					    logger.error("problem getting paired, value: {}", value);
+					}
+				    }
+				}
+			    }
+			}
+		    }
+		}
+		
+		File vcfFile = fileToFind(sample, MimeType.TEXT_VCF, "ic_snps.vcf");
+		
+		if (vcfFile == null) {
+		    logger.error("vcf file to process was still not found");
+		    logger.info(sample.toString());
+		    return ret;
+		}
+		
+		logger.info("vcfFile file is: {}", vcfFile.getAbsolutePath());
+		if (vcfFile.exists()) {
+		    VCFParser parser = VCFParser.getInstance();
+		    VCFResult results = parser.parse(vcfFile);
+		    ret.setIcSNPResultList(results);
+		}
+		
+		File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY, "coverage.sample_summary");
+		
+		if (depthOfCoverageSummaryFile == null) {
+		    logger.error("depthOfCoverageSummaryFile to process was still not found");
+		    logger.info(sample.toString());
+		    return ret;
+		}
+		
+		logger.info("depthOfCoverageSummaryFile file is: {}", depthOfCoverageSummaryFile.getAbsolutePath());
+		
+		if (depthOfCoverageSummaryFile.exists()) {
+		    List<String> lines = FileUtils.readLines(depthOfCoverageSummaryFile);
+		    for (String line : lines) {
+			if (line.contains("Total")) {
+			    String[] split = line.split("\t");
+			    ret.setTotalCoverage(Long.valueOf(split[1]));
+			    ret.setMean(Double.valueOf(split[2]));
+			}
+		    }
+		}
 
-            if (flagstatFile == null) {
-                logger.error("flagstat file to process was still not found");
-                return ret;
-            }
-
-            logger.info("flagstat file is: {}", flagstatFile.getAbsolutePath());
-            if (flagstatFile.exists()) {
-                List<String> lines = null;
-                try {
-                    lines = FileUtils.readLines(flagstatFile);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-
-                if (lines != null) {
-                    for (String line : lines) {
-
-                        if (line.contains("in total")) {
-                            String value = line.substring(0, line.indexOf(" ")).trim();
-                            try {
-                                ret.setPassedReads(Integer.valueOf(value));
-                            } catch (Exception e) {
-                                logger.error("problem getting passedReads, value: {}", value);
-                            }
-                        }
-
-                        if (line.contains("mapped (")) {
-                            Pattern pattern = Pattern.compile("^.+\\((.+)\\)");
-                            Matcher matcher = pattern.matcher(line);
-                            if (matcher.matches()) {
-                                String value = matcher.group(1);
-                                value = value.substring(0, value.indexOf("%")).trim();
-                                if (StringUtils.isNotEmpty(value)) {
-                                    try {
-                                        ret.setAligned(Float.valueOf(value));
-                                    } catch (Exception e) {
-                                        logger.error("problem getting mapped, value: {}", value);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (line.contains("properly paired (")) {
-                            Pattern pattern = Pattern.compile("^.+\\((.+)\\)");
-                            Matcher matcher = pattern.matcher(line);
-                            if (matcher.matches()) {
-                                String value = matcher.group(1);
-                                value = value.substring(0, value.indexOf("%"));
-                                if (StringUtils.isNotEmpty(value)) {
-                                    try {
-                                        ret.setPaired(Float.valueOf(value));
-                                    } catch (Exception e) {
-                                        logger.error("problem getting paired, value: {}", value);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            File vcfFile = fileToFind(sample, MimeType.TEXT_VCF, workflowRun, "ic_snps.vcf");
-
-            if (vcfFile == null) {
-                logger.error("vcf file to process was still not found");
-                logger.info(sample.toString());
-                return ret;
-            }
-
-            logger.info("vcfFile file is: {}", vcfFile.getAbsolutePath());
-            if (vcfFile.exists()) {
-                VCFParser parser = VCFParser.getInstance();
-                VCFResult results = parser.parse(vcfFile);
-                ret.setIcSNPResultList(results);
-            }
-
-            File depthOfCoverageSummaryFile = fileToFind(sample, MimeType.TEXT_DEPTH_OF_COVERAGE_SUMMARY, workflowRun,
-                    "coverage.sample_summary");
-
-            if (depthOfCoverageSummaryFile == null) {
-                logger.error("depthOfCoverageSummaryFile to process was still not found");
-                logger.info(sample.toString());
-                return ret;
-            }
-
-            logger.info("depthOfCoverageSummaryFile file is: {}", depthOfCoverageSummaryFile.getAbsolutePath());
-
-            if (depthOfCoverageSummaryFile.exists()) {
-                try {
-                    List<String> lines = FileUtils.readLines(depthOfCoverageSummaryFile);
-                    for (String line : lines) {
-                        if (line.contains("Total")) {
-                            String[] split = line.split("\t");
-                            ret.setTotalCoverage(Long.valueOf(split[1]));
-                            ret.setMean(Double.valueOf(split[2]));
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-
+	    }
+	} catch (Exception e) {
+	    logger.error(e.getMessage(), e);
+	}
+	
         return ret;
     }
 
-    private File fileToFind(Sample sample, MimeType mimeType, WorkflowRun workflowRun, String suffix) {
+    private File fileToFind(Sample sample, MimeType mimeType, String suffix) throws MaPSeqDAOException {
         Set<FileData> sampleFileDataSet = sample.getFileDatas();
+
+	Workflow workflow = null;
+	List<Workflow> workflowList = workflowDAO.findByName("NCGenesBaseline");
+	if (CollectionUtils.isNotEmpty(workflowList)) {
+	    workflow = workflowList.get(0);
+	}
 
         if (CollectionUtils.isNotEmpty(sampleFileDataSet)) {
             for (FileData fileData : sampleFileDataSet) {
@@ -200,7 +189,7 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
             }
         }
 
-        File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflowRun.getWorkflow());
+        File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
         if (outputDirectory.exists()) {
             for (File file : outputDirectory.listFiles()) {
                 if (file.getName().endsWith(suffix)) {
@@ -213,7 +202,7 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
     }
 
     @Override
-    public VCFResult lookupIdentityInfoFromVCF(Long sampleId, Long workflowRunId) {
+    public VCFResult lookupIdentityInfoFromVCF(Long sampleId) {
         logger.debug("ENTERING lookupIdentityInfoFromVCF(Long)");
         if (sampleId == null) {
             logger.warn("sampleId is null");
@@ -258,12 +247,12 @@ public class NCGenesBaselineServiceImpl implements NCGenesBaselineService {
         this.sampleDAO = sampleDAO;
     }
 
-    public WorkflowRunDAO getWorkflowRunDAO() {
-        return workflowRunDAO;
+    public WorkflowDAO getWorkflowDAO() {
+        return workflowDAO;
     }
 
-    public void setWorkflowRunDAO(WorkflowRunDAO workflowRunDAO) {
-        this.workflowRunDAO = workflowRunDAO;
+    public void setWorkflowDAO(WorkflowDAO workflowDAO) {
+        this.workflowDAO = workflowDAO;
     }
 
 }
