@@ -12,9 +12,11 @@
   ">
 
   <reference id="sampleDAO" interface="edu.unc.mapseq.dao.SampleDAO" />
+  <reference id="workflowDAO" interface="edu.unc.mapseq.dao.WorkflowDAO" />
 
   <bean id="ncgenesBaseline" class="edu.unc.mapseq.ws.ncgenes.baseline.impl.NCGenesBaselineServiceImpl">
     <property name="sampleDAO" ref="sampleDAO" />
+    <property name="workflowDAO" ref="workflowDAO" />
   </bean>
 
   <jaxrs:server id="NCGenesBaselineServiceRS" address="/NCGenesBaseline">
