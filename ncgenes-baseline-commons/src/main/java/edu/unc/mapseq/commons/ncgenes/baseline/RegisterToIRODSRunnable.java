@@ -28,6 +28,7 @@ import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.MimeType;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.module.sequencing.WriteVCFHeader;
 import edu.unc.mapseq.module.sequencing.fastqc.FastQC;
 import edu.unc.mapseq.module.sequencing.filter.FilterVariant;
 import edu.unc.mapseq.module.sequencing.gatk.GATKApplyRecalibration;
@@ -135,6 +136,12 @@ public class RegisterToIRODSRunnable implements Runnable {
                         new ImmutablePair<String, String>("MaPSeqFlowcellId", sample.getFlowcell().getId().toString()));
 
                 List<ImmutablePair<String, String>> attributeListWithJob = new ArrayList<>(attributeList);
+                attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", WriteVCFHeader.class.getSimpleName()));
+                attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_PLAIN.toString()));
+                files2RegisterToIRODS
+                        .add(new IRODSBean(new File(outputDirectory, String.format("%s.vcf.hdr", rootFileName)), attributeListWithJob));
+
+                attributeListWithJob = new ArrayList<>(attributeList);
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
                 files2RegisterToIRODS.add(
