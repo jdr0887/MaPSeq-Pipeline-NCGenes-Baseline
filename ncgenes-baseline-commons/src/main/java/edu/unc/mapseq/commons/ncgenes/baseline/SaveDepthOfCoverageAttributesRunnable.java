@@ -21,7 +21,6 @@ import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
-import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
