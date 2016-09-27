@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.RegisterToIRODSRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 
 @Command(scope = "ncgenes-baseline", name = "register-to-irods", description = "Register a NCGenes sample output to iRODS")
 @Service
@@ -29,11 +30,15 @@ public class RegisterToIRODSAction implements Action {
     @Option(name = "--flowcellId", description = "Flowcell Identifier", required = false, multiValued = false)
     private Long flowcellId;
 
+    @Option(name = "--workflowRunAttemptId", description = "WorkflowRunAttempt Identifier", required = true, multiValued = false)
+    private Long workflowRunAttemptId;
+
     @Override
     public Object execute() throws Exception {
         logger.debug("ENTERING execute()");
         ExecutorService es = Executors.newSingleThreadExecutor();
-        RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService);
+        WorkflowRunAttempt attempt = maPSeqDAOBeanService.getWorkflowRunAttemptDAO().findById(workflowRunAttemptId);
+        RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, attempt);
         if (sampleId != null) {
             runnable.setSampleId(sampleId);
         }
@@ -59,6 +64,14 @@ public class RegisterToIRODSAction implements Action {
 
     public void setSampleId(Long sampleId) {
         this.sampleId = sampleId;
+    }
+
+    public Long getWorkflowRunAttemptId() {
+        return workflowRunAttemptId;
+    }
+
+    public void setWorkflowRunAttemptId(Long workflowRunAttemptId) {
+        this.workflowRunAttemptId = workflowRunAttemptId;
     }
 
 }

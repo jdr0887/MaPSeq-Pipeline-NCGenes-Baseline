@@ -578,7 +578,7 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
                 MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
 
-                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean);
+                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean, getWorkflowRunAttempt());
                 registerNCGenesToIRODSRunnable.setSampleId(sample.getId());
                 es.submit(registerNCGenesToIRODSRunnable);
 
