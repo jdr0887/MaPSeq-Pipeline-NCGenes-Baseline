@@ -136,13 +136,12 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", WriteVCFHeader.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_PLAIN.toString()));
                 File file = new File(outputDirectory, String.format("%s.vcf.hdr", rootFileName));
-                Job job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(),
-                        WriteVCFHeader.class.getSimpleName(), file);
+                Job job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), WriteVCFHeader.class.getName(),
+                        file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            WriteVCFHeader.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), WriteVCFHeader.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -150,11 +149,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
                 file = new File(outputDirectory, String.format("%s_R1.fastqc.zip", rootFileName));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FastQC.class.getSimpleName(), file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FastQC.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FastQC.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FastQC.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -162,11 +161,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FastQC.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_ZIP.toString()));
                 file = new File(outputDirectory, String.format("%s_R2.fastqc.zip", rootFileName));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FastQC.class.getSimpleName(), file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FastQC.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FastQC.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FastQC.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -181,12 +180,12 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_BAM.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.bam"));
                 job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(),
-                        GATKTableRecalibration.class.getSimpleName(), file);
+                        GATKTableRecalibration.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            GATKTableRecalibration.class.getSimpleName()));
+                            GATKTableRecalibration.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -194,13 +193,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", SAMToolsIndex.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.APPLICATION_BAM_INDEX.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.bai"));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), SAMToolsIndex.class.getSimpleName(),
-                        file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), SAMToolsIndex.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            SAMToolsIndex.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), SAMToolsIndex.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -247,13 +244,13 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", SAMToolsFlagstat.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_STAT_SUMMARY.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.samtools.flagstat"));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(),
-                        SAMToolsFlagstat.class.getSimpleName(), file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), SAMToolsFlagstat.class.getName(),
+                        file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            SAMToolsFlagstat.class.getSimpleName()));
+                    logger.warn(
+                            String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), SAMToolsFlagstat.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -261,13 +258,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", GATKFlagStat.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_STAT_SUMMARY.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.gatk.flagstat"));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), GATKFlagStat.class.getSimpleName(),
-                        file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), GATKFlagStat.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(
-                            String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), GATKFlagStat.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), GATKFlagStat.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -275,13 +270,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FilterVariant.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_VCF.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.variant.vcf"));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FilterVariant.class.getSimpleName(),
-                        file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FilterVariant.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            FilterVariant.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FilterVariant.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -290,12 +283,12 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_VCF.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.variant.recalibrated.filtered.vcf"));
                 job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(),
-                        GATKApplyRecalibration.class.getSimpleName(), file);
+                        GATKApplyRecalibration.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            GATKApplyRecalibration.class.getSimpleName()));
+                            GATKApplyRecalibration.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
@@ -303,13 +296,11 @@ public class RegisterToIRODSRunnable implements Runnable {
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobName", FilterVariant.class.getSimpleName()));
                 attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqMimeType", MimeType.TEXT_VCF.toString()));
                 file = new File(outputDirectory, picardFixMateOutput.getName().replace(".bam", ".recal.variant.ic_snps.vcf"));
-                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FilterVariant.class.getSimpleName(),
-                        file);
+                job = SequencingWorkflowUtil.findJob(mapseqDAOBeanService, workflowRunAttempt.getId(), FilterVariant.class.getName(), file);
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                 } else {
-                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
-                            FilterVariant.class.getSimpleName()));
+                    logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FilterVariant.class.getName()));
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
