@@ -291,7 +291,7 @@ public class NCGenesWorkflowTest {
         sample.setLaneIndex(1);
         sample.setBarcode("ATCACG");
         sample.setStudy(study);
-        
+
         String outputDir = System.getenv("MAPSEQ_OUTPUT_DIRECTORY");
         File systemDirectory = new File(outputDir, WorkflowSystemType.PRODUCTION.getValue());
         File studyDirectory = new File(systemDirectory, sample.getStudy().getName());
