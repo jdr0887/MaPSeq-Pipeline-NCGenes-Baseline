@@ -1,4 +1,5 @@
-edu.unc.mapseq.commands.ncgenes.baseline.RegisterNCGenesToIRODSAction
+edu.unc.mapseq.commands.ncgenes.baseline.RegisterAllToIRODSAction
+edu.unc.mapseq.commands.ncgenes.baseline.RegisterToIRODSAction
 edu.unc.mapseq.commands.ncgenes.baseline.RunNCGenesWorkflowAction
 edu.unc.mapseq.commands.ncgenes.baseline.SaveDepthOfCoverageAttributesAction
 edu.unc.mapseq.commands.ncgenes.baseline.SaveFlagstatAttributesAction
