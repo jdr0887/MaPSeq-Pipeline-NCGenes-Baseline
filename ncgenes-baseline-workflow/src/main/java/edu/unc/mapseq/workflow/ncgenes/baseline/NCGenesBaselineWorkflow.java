@@ -22,7 +22,6 @@ import edu.unc.mapseq.commons.ncgenes.baseline.RegisterToIRODSRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveDepthOfCoverageAttributesRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveFlagstatAttributesRunnable;
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveMarkDuplicatesAttributesRunnable;
-import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Flowcell;
 import edu.unc.mapseq.dao.model.Sample;
@@ -73,7 +72,8 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
         int count = 0;
         String percentBadVariants = "0.05";
 
-        Set<Sample> sampleSet = getAggregatedSamples();
+        Set<Sample> sampleSet = SequencingWorkflowUtil.getAggregatedSamples(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+                getWorkflowRunAttempt());
         logger.info("sampleSet.size(): {}", sampleSet.size());
 
         String sselProbe = getWorkflowBeanService().getAttributes().get("sselProbe");
@@ -565,38 +565,25 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
     public void postRun() throws WorkflowException {
         logger.info("ENTERING postRun()");
 
-        Set<Sample> sampleSet = getAggregatedSamples();
-
         ExecutorService es = Executors.newSingleThreadExecutor();
 
         try {
-            for (Sample sample : sampleSet) {
 
-                if ("Undetermined".equals(sample.getBarcode())) {
-                    continue;
-                }
+            RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(
+                    getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+            es.submit(registerNCGenesToIRODSRunnable);
 
-                MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
+            SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable(
+                    getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+            es.submit(saveFlagstatAttributeRunnable);
 
-                RegisterToIRODSRunnable registerNCGenesToIRODSRunnable = new RegisterToIRODSRunnable(daoBean, getWorkflowRunAttempt());
-                registerNCGenesToIRODSRunnable.setSampleId(sample.getId());
-                es.submit(registerNCGenesToIRODSRunnable);
+            SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable(
+                    getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+            es.submit(saveMarkDuplicatesAttributesRunnable);
 
-                SaveFlagstatAttributesRunnable saveFlagstatAttributeRunnable = new SaveFlagstatAttributesRunnable(daoBean);
-                saveFlagstatAttributeRunnable.setSampleId(sample.getId());
-                es.submit(saveFlagstatAttributeRunnable);
-
-                SaveMarkDuplicatesAttributesRunnable saveMarkDuplicatesAttributesRunnable = new SaveMarkDuplicatesAttributesRunnable(
-                        daoBean);
-                saveMarkDuplicatesAttributesRunnable.setSampleId(sample.getId());
-                es.submit(saveMarkDuplicatesAttributesRunnable);
-
-                SaveDepthOfCoverageAttributesRunnable saveDepthOfCoverageAttributesRunnable = new SaveDepthOfCoverageAttributesRunnable(
-                        daoBean);
-                saveDepthOfCoverageAttributesRunnable.setSampleId(sample.getId());
-                es.submit(saveDepthOfCoverageAttributesRunnable);
-
-            }
+            SaveDepthOfCoverageAttributesRunnable saveDepthOfCoverageAttributesRunnable = new SaveDepthOfCoverageAttributesRunnable(
+                    getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+            es.submit(saveDepthOfCoverageAttributesRunnable);
 
             es.shutdown();
             es.awaitTermination(1L, TimeUnit.HOURS);
