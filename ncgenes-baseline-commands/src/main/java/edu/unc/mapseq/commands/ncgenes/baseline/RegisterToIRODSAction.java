@@ -24,12 +24,6 @@ public class RegisterToIRODSAction implements Action {
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
-    @Option(name = "--sampleId", description = "Sample Identifier", required = false, multiValued = false)
-    private Long sampleId;
-
-    @Option(name = "--flowcellId", description = "Flowcell Identifier", required = false, multiValued = false)
-    private Long flowcellId;
-
     @Option(name = "--workflowRunAttemptId", description = "WorkflowRunAttempt Identifier", required = true, multiValued = false)
     private Long workflowRunAttemptId;
 
@@ -39,31 +33,9 @@ public class RegisterToIRODSAction implements Action {
         ExecutorService es = Executors.newSingleThreadExecutor();
         WorkflowRunAttempt attempt = maPSeqDAOBeanService.getWorkflowRunAttemptDAO().findById(workflowRunAttemptId);
         RegisterToIRODSRunnable runnable = new RegisterToIRODSRunnable(maPSeqDAOBeanService, attempt);
-        if (sampleId != null) {
-            runnable.setSampleId(sampleId);
-        }
-        if (flowcellId != null) {
-            runnable.setFlowcellId(flowcellId);
-        }
         es.submit(runnable);
         es.shutdown();
         return null;
-    }
-
-    public Long getFlowcellId() {
-        return flowcellId;
-    }
-
-    public void setFlowcellId(Long flowcellId) {
-        this.flowcellId = flowcellId;
-    }
-
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
     }
 
     public Long getWorkflowRunAttemptId() {

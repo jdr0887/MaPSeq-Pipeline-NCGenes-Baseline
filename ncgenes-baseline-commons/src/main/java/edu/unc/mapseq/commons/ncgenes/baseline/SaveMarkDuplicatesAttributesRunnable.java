@@ -21,74 +21,65 @@ import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
+import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesRunnable.class);
 
-    private Long sampleId;
+    private MaPSeqDAOBeanService mapseqDAOBeanService;
 
-    private Long flowcellId;
+    private WorkflowRunAttempt workflowRunAttempt;
 
-    private MaPSeqDAOBeanService maPSeqDAOBeanService;
-
-    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+    public SaveMarkDuplicatesAttributesRunnable() {
         super();
-        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
+    public SaveMarkDuplicatesAttributesRunnable(MaPSeqDAOBeanService mapseqDAOBeanService, WorkflowRunAttempt workflowRunAttempt) {
+        super();
+        this.mapseqDAOBeanService = mapseqDAOBeanService;
+        this.workflowRunAttempt = workflowRunAttempt;
     }
 
     @Override
     public void run() {
         logger.info("ENTERING run()");
 
-        Set<Sample> sampleSet = new HashSet<Sample>();
+        final WorkflowRun workflowRun = workflowRunAttempt.getWorkflowRun();
+        final Workflow workflow = workflowRun.getWorkflow();
 
-        List<Workflow> workflowList = null;
         try {
-            if (flowcellId != null) {
-                sampleSet.addAll(maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId));
-            }
+            Set<Sample> sampleSet = SequencingWorkflowUtil.getAggregatedSamples(mapseqDAOBeanService, workflowRunAttempt);
 
-            if (sampleId != null) {
-                Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
-                if (sample == null) {
-                    logger.error("Sample was not found");
-                    return;
-                }
-                sampleSet.add(sample);
-            }
-            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
-            if (CollectionUtils.isEmpty(workflowList)) {
+            if (CollectionUtils.isEmpty(sampleSet)) {
+                logger.warn("No Samples found");
                 return;
             }
-        } catch (MaPSeqDAOException e) {
-            logger.warn("MaPSeqDAOException", e);
-        }
 
-        Workflow workflow = workflowList.get(0);
+            for (Sample sample : sampleSet) {
 
-        for (Sample sample : sampleSet) {
+                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
 
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
+                Set<Attribute> attributeSet = sample.getAttributes();
 
-            Set<Attribute> attributeSet = sample.getAttributes();
+                Set<String> attributeNameSet = new HashSet<String>();
 
-            Set<String> attributeNameSet = new HashSet<String>();
+                for (Attribute attribute : attributeSet) {
+                    attributeNameSet.add(attribute.getName());
+                }
 
-            for (Attribute attribute : attributeSet) {
-                attributeNameSet.add(attribute.getName());
-            }
+                Set<String> synchSet = Collections.synchronizedSet(attributeNameSet);
 
-            Set<String> synchSet = Collections.synchronizedSet(attributeNameSet);
+                Collection<File> fileList = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter(".deduped.metrics"),
+                        null);
 
-            Collection<File> fileList = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter(".deduped.metrics"), null);
-
-            if (CollectionUtils.isNotEmpty(fileList)) {
-                File picardMarkDuplicatesMetricsFile = fileList.iterator().next();
-                try {
+                if (CollectionUtils.isNotEmpty(fileList)) {
+                    File picardMarkDuplicatesMetricsFile = fileList.iterator().next();
                     List<String> lines = FileUtils.readLines(picardMarkDuplicatesMetricsFile);
-                    if (lines != null) {
+                    if (CollectionUtils.isNotEmpty(lines)) {
                         Iterator<String> lineIter = lines.iterator();
                         while (lineIter.hasNext()) {
                             String line = lineIter.next();
@@ -125,43 +116,31 @@ public class SaveMarkDuplicatesAttributesRunnable implements Runnable {
 
                         }
                     }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
 
-                try {
                     sample.setAttributes(attributeSet);
-                    maPSeqDAOBeanService.getSampleDAO().save(sample);
-                } catch (MaPSeqDAOException e) {
-                    e.printStackTrace();
+                    mapseqDAOBeanService.getSampleDAO().save(sample);
                 }
             }
+        } catch (WorkflowException | IOException | MaPSeqDAOException e) {
+            e.printStackTrace();
         }
 
     }
 
-    public Long getSampleId() {
-        return sampleId;
+    public MaPSeqDAOBeanService getMapseqDAOBeanService() {
+        return mapseqDAOBeanService;
     }
 
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
+    public void setMapseqDAOBeanService(MaPSeqDAOBeanService mapseqDAOBeanService) {
+        this.mapseqDAOBeanService = mapseqDAOBeanService;
     }
 
-    public Long getFlowcellId() {
-        return flowcellId;
+    public WorkflowRunAttempt getWorkflowRunAttempt() {
+        return workflowRunAttempt;
     }
 
-    public void setFlowcellId(Long flowcellId) {
-        this.flowcellId = flowcellId;
-    }
-
-    public MaPSeqDAOBeanService getMaPSeqDAOBeanService() {
-        return maPSeqDAOBeanService;
-    }
-
-    public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
-        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    public void setWorkflowRunAttempt(WorkflowRunAttempt workflowRunAttempt) {
+        this.workflowRunAttempt = workflowRunAttempt;
     }
 
 }

@@ -3,11 +3,11 @@ package edu.unc.mapseq.commons.ncgenes.baseline;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -37,6 +37,7 @@ import edu.unc.mapseq.module.sequencing.gatk.GATKFlagStat;
 import edu.unc.mapseq.module.sequencing.gatk.GATKTableRecalibration;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsFlagstat;
 import edu.unc.mapseq.module.sequencing.samtools.SAMToolsIndex;
+import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.sequencing.IRODSBean;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
@@ -45,10 +46,6 @@ public class RegisterToIRODSRunnable implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RegisterToIRODSRunnable.class);
 
     private MaPSeqDAOBeanService mapseqDAOBeanService;
-
-    private Long flowcellId;
-
-    private Long sampleId;
 
     private WorkflowRunAttempt workflowRunAttempt;
 
@@ -65,28 +62,18 @@ public class RegisterToIRODSRunnable implements Runnable {
         final WorkflowRun workflowRun = workflowRunAttempt.getWorkflowRun();
         final Workflow workflow = workflowRun.getWorkflow();
 
-        Set<Sample> sampleSet = new HashSet<Sample>();
-        try {
-            if (sampleId != null) {
-                sampleSet.add(mapseqDAOBeanService.getSampleDAO().findById(sampleId));
-            }
-
-            if (flowcellId != null) {
-                List<Sample> samples = mapseqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId);
-                if (samples != null && !samples.isEmpty()) {
-                    sampleSet.addAll(samples);
-                }
-            }
-        } catch (MaPSeqDAOException e1) {
-            e1.printStackTrace();
-            return;
-        }
-
         BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
         Bundle bundle = bundleContext.getBundle();
         String version = bundle.getVersion().toString();
 
         try {
+
+            Set<Sample> sampleSet = SequencingWorkflowUtil.getAggregatedSamples(mapseqDAOBeanService, workflowRunAttempt);
+
+            if (CollectionUtils.isEmpty(sampleSet)) {
+                logger.warn("No Samples found");
+                return;
+            }
 
             for (Sample sample : sampleSet) {
 
@@ -362,26 +349,10 @@ public class RegisterToIRODSRunnable implements Runnable {
 
             }
 
-        } catch (MaPSeqDAOException e) {
+        } catch (MaPSeqDAOException | WorkflowException e) {
             e.printStackTrace();
         }
 
-    }
-
-    public Long getFlowcellId() {
-        return flowcellId;
-    }
-
-    public void setFlowcellId(Long flowcellId) {
-        this.flowcellId = flowcellId;
-    }
-
-    public Long getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
     }
 
 }

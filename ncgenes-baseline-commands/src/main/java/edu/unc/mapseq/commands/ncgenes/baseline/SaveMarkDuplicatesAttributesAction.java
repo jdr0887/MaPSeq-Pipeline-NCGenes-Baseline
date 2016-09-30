@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.unc.mapseq.commons.ncgenes.baseline.SaveMarkDuplicatesAttributesRunnable;
 import edu.unc.mapseq.dao.MaPSeqDAOBeanService;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 
 @Command(scope = "ncgenes-baseline", name = "save-mark-duplicates-attributes", description = "Save MarkDuplicates Attributes")
 @Service
@@ -20,53 +21,29 @@ public class SaveMarkDuplicatesAttributesAction implements Action {
 
     private static final Logger logger = LoggerFactory.getLogger(SaveMarkDuplicatesAttributesAction.class);
 
-    @Option(name = "--sampleId", description = "Sample Identifier", required = false, multiValued = false)
-    private Long sampleId;
-
-    @Option(name = "--flowcellId", description = "Flowcell Identifier", required = false, multiValued = false)
-    private Long flowcellId;
-
     @Reference
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
+
+    @Option(name = "--workflowRunAttemptId", description = "WorkflowRunAttempt Identifier", required = true, multiValued = false)
+    private Long workflowRunAttemptId;
 
     @Override
     public Object execute() throws Exception {
         logger.debug("ENTERING execute()");
-
-        if (sampleId == null && flowcellId == null) {
-            System.out.println("Both the Sample & Flowcell identifiers can't be null");
-            return null;
-        }
-
         ExecutorService es = Executors.newSingleThreadExecutor();
-
-        SaveMarkDuplicatesAttributesRunnable runnable = new SaveMarkDuplicatesAttributesRunnable(maPSeqDAOBeanService);
-        if (sampleId != null) {
-            runnable.setSampleId(sampleId);
-        }
-        if (flowcellId != null) {
-            runnable.setFlowcellId(flowcellId);
-        }
+        WorkflowRunAttempt attempt = maPSeqDAOBeanService.getWorkflowRunAttemptDAO().findById(workflowRunAttemptId);
+        SaveMarkDuplicatesAttributesRunnable runnable = new SaveMarkDuplicatesAttributesRunnable(maPSeqDAOBeanService, attempt);
         es.submit(runnable);
         es.shutdown();
-
         return null;
     }
 
-    public Long getSampleId() {
-        return sampleId;
+    public Long getWorkflowRunAttemptId() {
+        return workflowRunAttemptId;
     }
 
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
-    }
-
-    public Long getFlowcellId() {
-        return flowcellId;
-    }
-
-    public void setFlowcellId(Long flowcellId) {
-        this.flowcellId = flowcellId;
+    public void setWorkflowRunAttemptId(Long workflowRunAttemptId) {
+        this.workflowRunAttemptId = workflowRunAttemptId;
     }
 
 }

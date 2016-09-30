@@ -21,223 +21,192 @@ import edu.unc.mapseq.dao.MaPSeqDAOException;
 import edu.unc.mapseq.dao.model.Attribute;
 import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.Workflow;
+import edu.unc.mapseq.dao.model.WorkflowRun;
+import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
+import edu.unc.mapseq.workflow.WorkflowException;
 import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class SaveDepthOfCoverageAttributesRunnable implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SaveDepthOfCoverageAttributesRunnable.class);
 
-    private Long sampleId;
+    private MaPSeqDAOBeanService mapseqDAOBeanService;
 
-    private Long flowcellId;
+    private WorkflowRunAttempt workflowRunAttempt;
 
-    private MaPSeqDAOBeanService maPSeqDAOBeanService;
-
-    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService maPSeqDAOBeanService) {
+    public SaveDepthOfCoverageAttributesRunnable() {
         super();
-        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    }
+
+    public SaveDepthOfCoverageAttributesRunnable(MaPSeqDAOBeanService mapseqDAOBeanService, WorkflowRunAttempt workflowRunAttempt) {
+        super();
+        this.mapseqDAOBeanService = mapseqDAOBeanService;
+        this.workflowRunAttempt = workflowRunAttempt;
     }
 
     @Override
     public void run() {
         logger.debug("ENTERING run()");
 
-        Set<Sample> sampleSet = new HashSet<Sample>();
+        final WorkflowRun workflowRun = workflowRunAttempt.getWorkflowRun();
+        final Workflow workflow = workflowRun.getWorkflow();
 
-        List<Workflow> workflowList = null;
         try {
-            if (flowcellId != null) {
-                sampleSet.addAll(maPSeqDAOBeanService.getSampleDAO().findByFlowcellId(flowcellId));
-            }
+            Set<Sample> sampleSet = SequencingWorkflowUtil.getAggregatedSamples(mapseqDAOBeanService, workflowRunAttempt);
 
-            if (sampleId != null) {
-                Sample sample = maPSeqDAOBeanService.getSampleDAO().findById(sampleId);
-                if (sample == null) {
-                    logger.error("Sample was not found");
-                    return;
-                }
-                sampleSet.add(sample);
-            }
-
-            workflowList = maPSeqDAOBeanService.getWorkflowDAO().findByName("NCGenesBaseline");
-            if (CollectionUtils.isEmpty(workflowList)) {
+            if (CollectionUtils.isEmpty(sampleSet)) {
+                logger.warn("No Samples found");
                 return;
             }
 
-        } catch (MaPSeqDAOException e) {
-            logger.warn("MaPSeqDAOException", e);
-        }
+            for (Sample sample : sampleSet) {
 
-        Workflow workflow = workflowList.get(0);
+                File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
 
-        for (Sample sample : sampleSet) {
-
-            File outputDirectory = SequencingWorkflowUtil.createOutputDirectory(sample, workflow);
-
-            if (!outputDirectory.exists()) {
-                continue;
-            }
-
-            Set<Attribute> attributeSet = sample.getAttributes();
-
-            Set<String> attributeNameSet = new HashSet<String>();
-
-            for (Attribute attribute : attributeSet) {
-                attributeNameSet.add(attribute.getName());
-            }
-
-            Set<String> synchSet = Collections.synchronizedSet(attributeNameSet);
-
-            List<File> files = Arrays.asList(outputDirectory.listFiles());
-
-            if (files == null || (files != null && files.isEmpty())) {
-                logger.warn("no files found");
-                continue;
-            }
-
-            File sampleSummaryFile = null;
-            for (File f : files) {
-                if (f.getName().endsWith(".coverage.sample_summary")) {
-                    sampleSummaryFile = f;
-                    break;
-                }
-            }
-
-            if (sampleSummaryFile != null && sampleSummaryFile.exists()) {
-                List<String> lines = null;
-                try {
-                    lines = FileUtils.readLines(sampleSummaryFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (lines != null) {
-                    for (String line : lines) {
-                        if (line.contains("Total")) {
-                            String[] split = StringUtils.split(line);
-
-                            if (synchSet.contains("GATKDepthOfCoverage.totalCoverage")) {
-                                for (Attribute attribute : attributeSet) {
-                                    if (attribute.getName().equals("GATKDepthOfCoverage.totalCoverage")) {
-                                        attribute.setValue(split[1]);
-                                        break;
-                                    }
-                                }
-                            } else {
-                                attributeSet.add(new Attribute("GATKDepthOfCoverage.totalCoverage", split[1]));
-                            }
-
-                            if (synchSet.contains("GATKDepthOfCoverage.mean")) {
-                                for (Attribute attribute : attributeSet) {
-                                    if (attribute.getName().equals("GATKDepthOfCoverage.mean")) {
-                                        attribute.setValue(split[1]);
-                                        break;
-                                    }
-                                }
-                            } else {
-                                attributeSet.add(new Attribute("GATKDepthOfCoverage.mean", split[2]));
-                            }
-                        }
-                    }
+                if (!outputDirectory.exists()) {
+                    continue;
                 }
 
-                File sampleIntervalSummaryFile = null;
+                Set<Attribute> attributeSet = sample.getAttributes();
+
+                Set<String> attributeNameSet = new HashSet<String>();
+
+                for (Attribute attribute : attributeSet) {
+                    attributeNameSet.add(attribute.getName());
+                }
+
+                Set<String> synchSet = Collections.synchronizedSet(attributeNameSet);
+
+                List<File> files = Arrays.asList(outputDirectory.listFiles());
+
+                if (files == null || (files != null && files.isEmpty())) {
+                    logger.warn("no files found");
+                    continue;
+                }
+
+                File sampleSummaryFile = null;
                 for (File f : files) {
-                    if (f.getName().endsWith(".coverage.sample_interval_summary")) {
-                        sampleIntervalSummaryFile = f;
+                    if (f.getName().endsWith(".coverage.sample_summary")) {
+                        sampleSummaryFile = f;
                         break;
                     }
                 }
 
-                if (sampleIntervalSummaryFile != null && sampleIntervalSummaryFile.exists()) {
+                if (sampleSummaryFile != null && sampleSummaryFile.exists()) {
+                    List<String> lines = FileUtils.readLines(sampleSummaryFile);
+                    if (CollectionUtils.isNotEmpty(lines)) {
+                        for (String line : lines) {
+                            if (line.contains("Total")) {
+                                String[] split = StringUtils.split(line);
 
-                    long totalCoverageCount = 0;
-                    BufferedReader br = null;
-                    try {
-                        br = new BufferedReader(new FileReader(sampleIntervalSummaryFile));
-                        String line;
-                        br.readLine();
-                        while ((line = br.readLine()) != null) {
-                            totalCoverageCount += Long.valueOf(StringUtils.split(line)[1].trim());
-                        }
-                    } catch (NumberFormatException | IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                                if (synchSet.contains("GATKDepthOfCoverage.totalCoverage")) {
+                                    for (Attribute attribute : attributeSet) {
+                                        if (attribute.getName().equals("GATKDepthOfCoverage.totalCoverage")) {
+                                            attribute.setValue(split[1]);
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    attributeSet.add(new Attribute("GATKDepthOfCoverage.totalCoverage", split[1]));
+                                }
 
-                    if (synchSet.contains("GATKDepthOfCoverage.totalCoverageCount")) {
-                        for (Attribute attribute : attributeSet) {
-                            if (attribute.getName().equals("GATKDepthOfCoverage.totalCoverageCount")) {
-                                attribute.setValue(totalCoverageCount + "");
-                                break;
+                                if (synchSet.contains("GATKDepthOfCoverage.mean")) {
+                                    for (Attribute attribute : attributeSet) {
+                                        if (attribute.getName().equals("GATKDepthOfCoverage.mean")) {
+                                            attribute.setValue(split[1]);
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    attributeSet.add(new Attribute("GATKDepthOfCoverage.mean", split[2]));
+                                }
                             }
                         }
-                    } else {
-                        attributeSet.add(new Attribute("GATKDepthOfCoverage.totalCoverageCount", totalCoverageCount + ""));
                     }
 
-                    Long totalPassedReads = null;
-                    for (Attribute attribute : attributeSet) {
-                        if ("SAMToolsFlagstat.totalPassedReads".equals(attribute.getName())) {
-                            totalPassedReads = Long.valueOf(attribute.getValue());
+                    File sampleIntervalSummaryFile = null;
+                    for (File f : files) {
+                        if (f.getName().endsWith(".coverage.sample_interval_summary")) {
+                            sampleIntervalSummaryFile = f;
                             break;
                         }
                     }
 
-                    if (totalPassedReads != null) {
-                        if (synchSet.contains("numberOnTarget")) {
+                    if (sampleIntervalSummaryFile != null && sampleIntervalSummaryFile.exists()) {
+
+                        long totalCoverageCount = 0;
+
+                        try (FileReader fr = new FileReader(sampleIntervalSummaryFile); BufferedReader br = new BufferedReader(fr)) {
+                            String line;
+                            br.readLine();
+                            while ((line = br.readLine()) != null) {
+                                totalCoverageCount += Long.valueOf(StringUtils.split(line)[1].trim());
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (synchSet.contains("GATKDepthOfCoverage.totalCoverageCount")) {
                             for (Attribute attribute : attributeSet) {
-                                if (attribute.getName().equals("numberOnTarget") && totalPassedReads != null) {
-                                    attribute.setValue((double) totalCoverageCount / (totalPassedReads * 100) + "");
+                                if (attribute.getName().equals("GATKDepthOfCoverage.totalCoverageCount")) {
+                                    attribute.setValue(totalCoverageCount + "");
                                     break;
                                 }
                             }
                         } else {
-                            attributeSet.add(new Attribute("numberOnTarget", (double) totalCoverageCount / (totalPassedReads * 100) + ""));
+                            attributeSet.add(new Attribute("GATKDepthOfCoverage.totalCoverageCount", totalCoverageCount + ""));
                         }
+
+                        Long totalPassedReads = null;
+                        for (Attribute attribute : attributeSet) {
+                            if ("SAMToolsFlagstat.totalPassedReads".equals(attribute.getName())) {
+                                totalPassedReads = Long.valueOf(attribute.getValue());
+                                break;
+                            }
+                        }
+
+                        if (totalPassedReads != null) {
+                            if (synchSet.contains("numberOnTarget")) {
+                                for (Attribute attribute : attributeSet) {
+                                    if (attribute.getName().equals("numberOnTarget") && totalPassedReads != null) {
+                                        attribute.setValue((double) totalCoverageCount / (totalPassedReads * 100) + "");
+                                        break;
+                                    }
+                                }
+                            } else {
+                                attributeSet
+                                        .add(new Attribute("numberOnTarget", (double) totalCoverageCount / (totalPassedReads * 100) + ""));
+                            }
+                        }
+
                     }
 
                 }
 
-            }
-
-            try {
                 sample.setAttributes(attributeSet);
-                maPSeqDAOBeanService.getSampleDAO().save(sample);
-            } catch (MaPSeqDAOException e) {
-                e.printStackTrace();
-            }
+                mapseqDAOBeanService.getSampleDAO().save(sample);
 
+            }
+        } catch (MaPSeqDAOException | IOException | NumberFormatException | WorkflowException e) {
+            e.printStackTrace();
         }
 
     }
 
-    public Long getSampleId() {
-        return sampleId;
+    public MaPSeqDAOBeanService getMapseqDAOBeanService() {
+        return mapseqDAOBeanService;
     }
 
-    public void setSampleId(Long sampleId) {
-        this.sampleId = sampleId;
+    public void setMapseqDAOBeanService(MaPSeqDAOBeanService mapseqDAOBeanService) {
+        this.mapseqDAOBeanService = mapseqDAOBeanService;
     }
 
-    public Long getFlowcellId() {
-        return flowcellId;
+    public WorkflowRunAttempt getWorkflowRunAttempt() {
+        return workflowRunAttempt;
     }
 
-    public void setFlowcellId(Long flowcellId) {
-        this.flowcellId = flowcellId;
-    }
-
-    public MaPSeqDAOBeanService getMaPSeqDAOBeanService() {
-        return maPSeqDAOBeanService;
-    }
-
-    public void setMaPSeqDAOBeanService(MaPSeqDAOBeanService maPSeqDAOBeanService) {
-        this.maPSeqDAOBeanService = maPSeqDAOBeanService;
+    public void setWorkflowRunAttempt(WorkflowRunAttempt workflowRunAttempt) {
+        this.workflowRunAttempt = workflowRunAttempt;
     }
 
 }
