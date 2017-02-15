@@ -129,7 +129,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), WriteVCFHeader.class.getName()));
@@ -159,7 +160,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FastQC.class.getName()));
@@ -197,7 +199,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), SAMToolsIndex.class.getName()));
@@ -252,7 +255,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(
@@ -283,7 +287,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FilterVariant.class.getName()));
@@ -299,7 +304,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(),
@@ -315,7 +321,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 if (job != null) {
                     attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobId", job.getId().toString()));
                     if (StringUtils.isNotEmpty(job.getCommandLine())) {
-                        attributeListWithJob.add(new ImmutablePair<String, String>("MaPSeqJobCommandLine", job.getCommandLine()));
+                        attributeListWithJob.add(
+                                new ImmutablePair<String, String>("MaPSeqJobCommandLine", String.format("'%s'", job.getCommandLine())));
                     }
                 } else {
                     logger.warn(String.format("Couldn't find job for: %d, %s", workflowRunAttempt.getId(), FilterVariant.class.getName()));
