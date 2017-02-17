@@ -85,8 +85,14 @@ public class RegisterToIRODSRunnable implements Runnable {
                 }
 
                 // assumption: a dash is used as a delimiter between a participantId and the external code
-                int idx = sample.getName().lastIndexOf("-");
-                String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
+                String participantId;
+
+                if (!sample.getName().startsWith("HRC")) {
+                    int idx = sample.getName().lastIndexOf("-");
+                    participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
+                } else {
+                    participantId = sample.getName();
+                }
 
                 String irodsDirectory = String.format("/MedGenZone/%s/sequencing/ncgenes/analysis/%s/L%03d_%s/%s",
                         workflow.getSystem().getValue(), sample.getFlowcell().getName(), sample.getLaneIndex(), sample.getBarcode(),
