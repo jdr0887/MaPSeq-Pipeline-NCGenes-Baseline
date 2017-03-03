@@ -137,8 +137,10 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
 
             // assumption: a dash is used as a delimiter between a participantId
             // and the external code
-            int idx = sample.getName().lastIndexOf("-");
-            String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
+            // int idx = sample.getName().lastIndexOf("-");
+            // String participantId = idx != -1 ? sample.getName().substring(0, idx) : sample.getName();
+            //no longer expecting composite for participantId...can just use sample name
+            String participantId = sample.getName();
 
             if (readPairList.size() == 2) {
 
