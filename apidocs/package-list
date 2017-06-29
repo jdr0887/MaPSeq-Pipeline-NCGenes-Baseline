@@ -1,0 +1,7 @@
+edu.unc.mapseq.commands.ncgenes.baseline
+edu.unc.mapseq.commons.ncgenes.baseline
+edu.unc.mapseq.executor.ncgenes.baseline
+edu.unc.mapseq.messaging.ncgenes.baseline
+edu.unc.mapseq.workflow.ncgenes.baseline
+edu.unc.mapseq.ws.ncgenes.baseline
+edu.unc.mapseq.ws.ncgenes.baseline.impl
